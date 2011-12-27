@@ -1,4 +1,6 @@
 """
+	Joe Young, December 2011
+
 	__init__.py for ceil2ff package. This code is the front end, and will do all the logic,
 	as derived from UUAdip.
 
@@ -8,15 +10,16 @@
 
 	T = unix timestamp
 	RG = Range gate in meters, how far apart is each ob, starting at 0
-	SH = starting height, elevation of the observation
+	SH = starting height, elevation of the observation NOTE!!! == 0 ALWAYS!!
 	D = backscatter coefficient value in m^-1 s^-1
 """
 
-import os,calendar,time,re
-from numpy import log10,mean,nan,divide,array,fromstring,int16,int
+import os,calendar,time
+from numpy import nan,array,log10
 import numpy as np
 
-def go(directory,out):
+
+def go(directory='.',out='./ceil.dat'):
 	"""
 		Read in Ceilometer data from raw data files
 		
@@ -25,11 +28,11 @@ def go(directory,out):
 	stime = time.time() # for efficiency monitoring purposes.
 	# BEGIN - *recursively* open every file in the provided directories!
 	# do not open the same file twice.
+	f = open(out,'w')
 	files = os.listdir(directory) # not currently recursive...
-	text = "" # the first character, blank thanks to the new format
-	for f in files:
+	for fd in files:
 		# check that the file is a file:
-		if os.path.isdir(f):
+		if os.path.isdir(fd):
 			continue # fail quietly
 		fn = fd.split("/")[-1]
 		if fn[0] == ".":
@@ -37,101 +40,79 @@ def go(directory,out):
 
 		print "reading",fn
 		
-		obs = getObs(f) # this retuns the entire coded ob set, a list of ob objects
-		if len(obs) ==0:
+		obs = getObs(fd) # this retuns the entire coded ob set, a list of ob objects
+		if not obs or len(obs) == 0:
 			print "Uhoh, no profiles found..."
 			continue #exit() # fail nicely
 		profs = []
 		times = []
+		hts = []
 		for ob in obs:
 			# heights, time, values, and the extra fun stuff (clouds, stats, whatnot)
-			profs.append(ob['v'])
-			times.append(ob['t'])
-		# well, just use the last value
-		hts = ob['h'] #WARNING!!! - this could be a poor assumption!!
-
+			profs.append(ob['v'])  # this is the entire profile.
+			times.append(ob['t'])  # this is the time of the ob
+			hts.append(ob['h']) # this is just the distance between range gates
 		"""
 			And write the flatfile!!
 		"""
-		# first insert a line representing heights:
-		for x in hts:
-			text += ','+str(x)
-		text += "\n"
-		nprofs = log10(nprofs) # do not flip!!
-		# then loop through the data
-		for i in range(len(nprofs)):
+		profs = log10(profs) # do not flip!! # not saving log10'd 
+		# then loop through the data - AND ASSEMBLE THE DATA LINE!
+		text = "" # the first character, blank thanks to the new format
+		for i in range(len(profs)):
 			# now each i is a key to an entire profile
-			text += str(ntimes[i])
+			text += str(times[i])+','+str(hts[i])+',0' # add the time, RG, and SH
 			# now loop through the data and add to the line
-			for d in nprofs[i]:
+			for d in profs[i]:
 				text += ','+str(d)
 			text += "\n" # add the requisite newline!
-	# then it is all ready!
-	f = open(kwargs['writeout'],'w')
-	f.write(text)
+		# then it is all ready!
+		f.write(text)
+
 	f.close()
 	return True
 
 """ ///////////////// INTERNAL METHODS /////////////////"""
 
 
-def getObs(f):
+def getObs(fd):
 	"""
+		Grabs the obs from the given file by exploding it, and then passing the 
+		sliced up obs to the parsers (raw_ob) which will then read out the information!
 	"""
 	print "Getting Observations"
 	in_time = True # holder for restrictions
 	d = {} # the sortable dict that is created
-	if restrict:
-		check = cls
-	else:
-		check = False
-	for fd in cls.find_files('','.DAT',allow_repeats=False):
-		# well, here is the file!
-			continue # this is a binary file, like a swp or whatnot
-		f = open(fd,'r')
-		# now the file is open, read through it and save each identifyable profile
+	# well, here is the file!
+	f = open(fd,'r')
+	# now the file is open, read through it and save each identifyable profile
+	f.seek(0,0)#reset the pointer!	
+	# Well, we are reding this one!
+	#########cls.log('Reading',fn)
+	# split by control character unichr(3), then shave off the top of these elements
+	eom = unichr(3)
+	fl = f.read() # put the whole thing into a string
+	f.close()
+	fobs = fl.split(eom) # break the string up by obs
+	if len(fobs) < 2:
+		# looks like there are no obs...
+		return False
 
-		# if restrict, then pluck out the first ob - and check if it is in range!
-		if restrict:
-			fl = f.read(500) # the first time stamp should be in the first 500 bytes
-			tm = raw_ob(fl,full=False) # this should work with the first ob...
-			if not tm:
-				continue
-			# now get the time of the last ob - neglibly inefficient
-			f.seek(-5000,2) # set the pointer to 1000 bytes from the end
-			fl = f.read().split(unichr(3))[-2] # this should read the last ob bytes
-			tm2 = raw_ob(fl)['time']
-			tm1 = tm['time']
-			if tm1 > cls.data.end or tm2 < cls.data.begin:
-				continue
-		f.seek(0,0)#reset the pointer!	
-		# Well, we are reding this one!
-		cls.log('Reading',fn)
-		# split by control character unichr(3), then shave off the top of these elements
-		eom = unichr(3)
-		fl = f.read() # put the whole thing into a string
-		f.close()
-		fobs = fl.split(eom) # break the string up by obs
-		if len(fobs) < 2:
-			# looks like there are no obs...
+	# well, now read through the obs, and append them to the sortable dict
+	for ob in fobs:
+		info = raw_ob(ob) 
+		# get an entire observation, so that this doesnt get redone
+		if not info:
+			# dont append that guy!
 			continue
-
-		# well, now read through the obs, and append them to the sortable dict
-		for ob in fobs:
-			info = raw_ob(ob,check=check,full=True,scaled=scaled,max_ht=max_ht,extra=extra,write=write) 
-			# get an entire observation, so that this doesnt get redone
-			if not info:
-				# dont append that guy!
-				continue
-			d[info['t']] = info 
-		del fl # does this garbage collect?
-		del fobs
+		d[info['t']] = info 
+	del fl # does this garbage collect?
+	del fobs
 	# now we have the obs... we need to go through them and order by time!
-	print "Sorting Observations"
-	# then we will sort the dict, and return
+	##print "Sorting Observations"
+	## then we will sort the dict, and return
 	dk = sorted(d.keys())
 
-	# now return
+	## now return
 	print "found",len(d),'profiles'
 	return [d[k] for k in dk] # the keys were times, when sorted, will print properly!
 	
@@ -163,15 +144,13 @@ def raw_ob(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=F
 			# a harsh and absolute evaluation
 			return False
 	out = {'time':obtime,'code':code,'rest':p[1]}
-	if not full:
-		return out
+	###if not full: # no longer an option
+	###	return out
 	# well, now we are going to get the full profile, so go!
-	return makeProf(out,scaled,max_ht,extra,write) # compacting the operation into one!
+	return makeProf(out) # compacting the operation into one!
 	
-		
 
-
-def makeProf(ob,scaled,max_ht,extra,write):
+def makeProf(ob):
 	"""
 		This will take the observation, and make a profile, by determining the type
 		And then reading into the
@@ -180,12 +159,17 @@ def makeProf(ob,scaled,max_ht,extra,write):
 	#print ob
 	if len(ob['code']) < 5:
 		# this is a CT12 message!
-		return read_ct12(ob,extra=extra,scaled=scaled,max_ht=max_ht,write=write)
+		return read_ct12(ob)
 	elif len(ob['rest'].split("\n")[-2]) > 1500: # data line is [-2] for msg 1 & 2
 		# then this is a CL31 message
-		return read_cl31(ob,extra=extra,scaled=scaled,max_ht=max_ht,write=write)
+		return read_cl31(ob)
 	else:
-		return read_ct25(ob,extra=extra,scaled=scaled,max_ht=max_ht,write=write)
+		return read_ct25(ob)
+
+
+
+
+
 
 
 def bin_profs(cls,profs,times,hts,span):
@@ -248,6 +232,12 @@ def bin_profs(cls,profs,times,hts,span):
 	# the text of the other information, preferably formatted, but #FIXME not yet
 
 """
+
+
+
+
+
+
 def read_ct12(ob,extra=False,scaled=True,max_ht=3500,write=False,**kwargs):
 	"""
 		process ct12 data
@@ -310,7 +300,8 @@ def read_ct12(ob,extra=False,scaled=True,max_ht=3500,write=False,**kwargs):
 			values.append(pow(int(l[i:i+2],16),2)/SCALING_FACTOR) #lets try the value squared...
 			hts.append(hght)
 	#print values
-	out = {'t':obtime,'h':hts,'v':values,'c':cld}
+	out = {'t':obtime,'h':15,'v':values,'c':cld} # 15 m vertical resolution is the only reportable form!
+	"""
 	if write:
 		# then write the data, and do not return
 		# the line should be formatted tm|hts,|vals,|cld\n
@@ -321,6 +312,7 @@ def read_ct12(ob,extra=False,scaled=True,max_ht=3500,write=False,**kwargs):
 			strv += str(values[i])+","
 		write.write(str(obtime)+'|'+strh+"|"+strv+"|"+cld+'\n')
 		return False # This will trigger no response, even though the job was done
+	"""
 	return out
 
 
@@ -329,8 +321,8 @@ def read_cl31(ob,scaled=True,max_ht=3500,extra=False,write=False,top=3500,**kwar
 		Read a cl31 message 1 or two observation
 	"""
 	SCALING_FACTOR = 1.0e9
-	if not scaled:
-		SCALING_FACTOR = 1
+	#if not scaled: # no! it is always scaled!
+	#	SCALING_FACTOR = 1
 	# this is a data set, ob is a array of lines
 	# FIXME cloud data does not currently get processed!!!
 	tm = int(ob['time'])
@@ -355,10 +347,11 @@ def read_cl31(ob,scaled=True,max_ht=3500,extra=False,write=False,top=3500,**kwar
 	#print val
 	for i in xrange(0,len(prof),5):
 		values.append(np.int(prof[i:i+5],16) / SCALING_FACTOR) # scaled to 100000sr/km (x1e9 sr/m)FYI
-	hts = [x * htMult for x in range(len(values))] #FIXME compensate for tilt!
+	#hts = [x * htMult for x in range(len(values))] #FIXME compensate for tilt!
 	# sadly, there is more that must be done... any value above 1e7 must be removed
-	values = [chkl31(x,ovr=not scaled) for x in values] # apply the filter for nan's
-	out = {'t':tm,'h':hts,'v':values,'c':cld}
+	values = [chkl31(x,ovr=False) for x in values] # apply the filter for nan's
+	out = {'t':tm,'h':htMult,'v':values,'c':cld}
+	"""
 	if write:
 		# then write the data, and do not return
 		# the line should be formatted tm|hts,|vals,|cld\n
@@ -369,6 +362,7 @@ def read_cl31(ob,scaled=True,max_ht=3500,extra=False,write=False,top=3500,**kwar
 			strv += str(values[i])+","
 		write.write(str(tm)+'|'+strh+"|"+strv+"|"+cld+'\n')
 		return False # This will trigger no response, even though the job was done
+	"""
 	return out
 	#print data
 def chkl31(v,ret=1e-8,ovr=False):
@@ -436,7 +430,7 @@ def read_ct25(ob,scaled=True,max_ht=3500,extra=False,write=False,**kwargs):
 			values.append(chkl31(int(l[i:i+4],16)/SCALING_FACTOR,ovr=not scaled))
 			hts.append(hght)
 		""""""
-	out = {'t':ob['time'],'h':hts,'v':values,'c':cld}
+	out = {'t':ob['time'],'h':30,'v':values,'c':cld} # yes, 30 m resolution! how terrible!
 	if write:
 		# then write the data, and do not return
 		# the line should be formatted tm|hts,|vals,|cld\n
