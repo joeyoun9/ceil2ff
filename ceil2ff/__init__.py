@@ -168,62 +168,6 @@ def makeProf(ob):
 
 
 
-
-
-
-
-def bin_profs(cls,profs,times,hts,span):
-	"""
-		Create and fill bins, and then average them
-		ASSUMING MONotonically increasing time values!
-	"""
-	# calculate the bins, with time in the center of the bin
-	bins = [] # for now this will be the END Times of the bins
-	t = cls.data.begin
-	while t < cls.data.end: # if t == the end, we should not make another!
-		t += span*60 # SPAN IN MINUTES
-		bins.append(t)
-	# if time is not at the end, then make a final bin
-	if not t == cls.data.end:
-		bins.append(cls.data.end) # final bin
-	binct = len(bins)
-	# fill the bins!
-	print "Creating ",binct,"bins"
-	binned = [[] for _ in bins] # so that it is the same size!
-	key = 0
-	for k in range(len(profs)):
-		ob = profs[k]
-		tm = times[k]
-		# ob is the observation (profile)
-		# quickly determine which bin key we are at!
-		while tm > bins[key]: # if the time is == to the bin, then it remains in this bin
-			# time should never be greater than the last bin...
-			# then it is time for a new bin!
-			key += 1
-		binned[key].append(ob)
-	# now create new profiles by averaging each bin by height #FIXME assuming the heights for the bins are the same!
-	outp = []# ['' for _ in binned] # initialize the out file
-	for bn in binned:
-		#bn = binned[b]
-		# this should be a list of profile values
-		# compute an average for each height in this
-		lth = len(bn) # how many profiles are in this bin
-		if lth == 0:
-			outp.append([nan for _ in hts]) # assign a nan list if it was an empty bin
-			continue
-		bno = []#[0. for _ in bn[0]] # set the out variable
-		if lth > 1: # if there is only one ob, then no averaging can be done
-			bn = cls.flip2d(bn) # make it so we can loop through by height instead of by ob
-			for l in bn:
-				bno.append(mean(l))
-		else:
-			bno = bn[0]
-		outp.append(bno)
-	outt = [_ - span*30 for _ in bins] # times are in the middle of the span
-	cls.log("Binning Stats:",len(outt),len(outp),len(outp[1]))
-	return outp,outt
-
-
 """ /////////////// Ob datatype readers //////////////// """
 """
 	These functions will take an individual ob, and return 3 datum:
