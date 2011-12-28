@@ -15,7 +15,7 @@
 """
 
 import os,calendar,time
-from numpy import nan,array,log10
+from numpy import nan,array,log10,exp
 import numpy as np
 
 
@@ -42,7 +42,7 @@ def go(directory='.',out='./ceil.dat'):
 		
 		obs = getObs(fd) # this retuns the entire coded ob set, a list of ob objects
 		if not obs or len(obs) == 0:
-			print "Uhoh, no profiles found..."
+			print "No profiles found."
 			continue #exit() # fail nicely
 		profs = []
 		times = []
@@ -79,15 +79,11 @@ def getObs(fd):
 		Grabs the obs from the given file by exploding it, and then passing the 
 		sliced up obs to the parsers (raw_ob) which will then read out the information!
 	"""
-	print "Getting Observations"
 	in_time = True # holder for restrictions
 	d = {} # the sortable dict that is created
 	# well, here is the file!
 	f = open(fd,'r')
 	# now the file is open, read through it and save each identifyable profile
-	f.seek(0,0)#reset the pointer!	
-	# Well, we are reding this one!
-	#########cls.log('Reading',fn)
 	# split by control character unichr(3), then shave off the top of these elements
 	eom = unichr(3)
 	fl = f.read() # put the whole thing into a string
@@ -108,7 +104,7 @@ def getObs(fd):
 	del fl # does this garbage collect?
 	del fobs
 	# now we have the obs... we need to go through them and order by time!
-	##print "Sorting Observations"
+	
 	## then we will sort the dict, and return
 	dk = sorted(d.keys())
 
@@ -137,32 +133,30 @@ def raw_ob(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=F
 	"""
 	head = p[0].split("\n") # split by newline, there should be "\n\r"
 	code = head[-1].strip() # the last two lines of this ob are the time/CTcode
+
+	#FIXME - make the timestamp reading more dynamic!
 	obtime = calendar.timegm(time.strptime(head[-2].strip()+"UTC","-%Y-%m-%d %H:%M:%S%Z"))
-	if check:
-		# then check should be the request object
-		if obtime < check.data.begin or obtime > check.data.end:
-			# a harsh and absolute evaluation
-			return False
+
 	out = {'time':obtime,'code':code,'rest':p[1]}
 	###if not full: # no longer an option
 	###	return out
 	# well, now we are going to get the full profile, so go!
-	return makeProf(out) # compacting the operation into one!
+	return IDprofile(out) # compacting the operation into one!
 	
 
-def makeProf(ob):
+def IDprofile(ob):
 	"""
 		This will take the observation, and make a profile, by determining the type
 		And then reading into the
 	"""
-	#lines = ob.split("\n") # split up by newlines, hopeully this gets it
-	#print ob
 	if len(ob['code']) < 5:
 		# this is a CT12 message!
 		return read_ct12(ob)
+
 	elif len(ob['rest'].split("\n")[-2]) > 1500: # data line is [-2] for msg 1 & 2
 		# then this is a CL31 message
 		return read_cl31(ob)
+
 	else:
 		return read_ct25(ob)
 
@@ -229,34 +223,17 @@ def read_ct12(ob,extra=False,scaled=True,max_ht=3500,write=False,**kwargs):
 		#print l[2:2+2]," L:",l
 		badline = False # new line, hopefully, things have improved
 		for i in xrange(2,len(l[2:]), 2):
-			_+= 1
-			hght = f2m(h0+_*50)
-			if 'max_ht' in kwargs.keys():
-				if hght > kwargs['max_ht']:
-					break
+
 			# sadly, there is a small glitch in the way these messages are saved
 			if l[i:i+2] == '  ' or badline:
 				badline = True # then the rest of this line is bad
 				values.append(nan)
 				hts.append(hght)
 				continue
-			# append values and heights! Woohoo!
-			values.append(pow(int(l[i:i+2],16),2)/SCALING_FACTOR) #lets try the value squared...
-			hts.append(hght)
-	#print values
+			# compute the backscattered value!
+			# format : raw - minV = exp((DD/50) - 1) So, it will be normalized...
+			values.append(exp( (int(l[i:i+2],16)/50) - 1)) #lets try the value squared...
 	out = {'t':obtime,'h':15,'v':values,'c':cld} # 15 m vertical resolution is the only reportable form!
-	"""
-	if write:
-		# then write the data, and do not return
-		# the line should be formatted tm|hts,|vals,|cld\n
-		strh = ""
-		strv = ""
-		for i in range(len(hts)):
-			strh += str(hts[i])+","
-			strv += str(values[i])+","
-		write.write(str(obtime)+'|'+strh+"|"+strv+"|"+cld+'\n')
-		return False # This will trigger no response, even though the job was done
-	"""
 	return out
 
 
@@ -271,44 +248,43 @@ def read_cl31(ob,scaled=True,max_ht=3500,extra=False,write=False,top=3500,**kwar
 	# FIXME cloud data does not currently get processed!!!
 	tm = int(ob['time'])
 	data = ob['rest'].split("\n") # split into lines
+
 	prof = data[-2].strip() # important to obliterate that little guy...
+
 	code = ob['code']
+
 	cld = [] # and thustly it will remain for now
-	if extra == 'compress':
-		# then just grab the extra lines - since this compress tries to save everything
-		cld = 'CL31'+ob['code'].strip()+data[1].strip()+data[2].strip()
+	# then just grab the extra lines - since this compress tries to save everything
+	cld = 'CL31'+ob['code'].strip()+data[1].strip()+data[2].strip()
+
 	# ... data lines ... #
 	# determine height difference by reading the last digit of the code
 	height_codes= [0,10,20,5,5] #'0' is not a valid key, and will not happen
 	htMult = height_codes[int(code[-1])] # assumes that newlines and spaces have been strip()ed off
 	hts = []
 	values = []
+
 	# the data line is simply the last line [-1]
 	#values = np.int(chunk(prof,0,5),16)/ array([SCALING_FACTOR for x in range(len(prof))])
 	#print values
 	# split with regexp? #BOO BAD!
 	#val = re.split('[00,ff]',prof)
 	#print val
+
 	for i in xrange(0,len(prof),5):
-		values.append(np.int(prof[i:i+5],16) / SCALING_FACTOR) # scaled to 100000sr/km (x1e9 sr/m)FYI
+		ven = prof[i:i+5]
+		if ven[0:2] == "ff":
+			# logic: ff corresponds to >=ff000, which is ~1e6, which is beyond super high
+			values.append(1e-8)
+		else:
+			values.append(np.int(ven,16) / SCALING_FACTOR) # scaled to 100000sr/km (x1e9 sr/m)FYI
 	#hts = [x * htMult for x in range(len(values))] #FIXME compensate for tilt!
 	# sadly, there is more that must be done... any value above 1e7 must be removed
-	values = [chkl31(x,ovr=False) for x in values] # apply the filter for nan's
+	#values = [chkl31(x) for x in values] # apply the filter for nan's
 	out = {'t':tm,'h':htMult,'v':values,'c':cld}
-	"""
-	if write:
-		# then write the data, and do not return
-		# the line should be formatted tm|hts,|vals,|cld\n
-		strh = ""
-		strv = ""
-		for i in range(len(hts)):
-			strh += str(hts[i])+","
-			strv += str(values[i])+","
-		write.write(str(tm)+'|'+strh+"|"+strv+"|"+cld+'\n')
-		return False # This will trigger no response, even though the job was done
-	"""
 	return out
 	#print data
+
 def chkl31(v,ret=1e-8,ovr=False):
 	"""
 		Quickly check cl31 backscatter for high-failure, set to 1
@@ -319,6 +295,7 @@ def chkl31(v,ret=1e-8,ovr=False):
 	if v > 1e-3:
 		return ret
 	return v
+
 
 def read_ct25(ob,scaled=True,max_ht=3500,extra=False,write=False,**kwargs):
 	"""
@@ -410,14 +387,14 @@ def chunk(l,i0,n):
 
 def flip2d(wrong):
 	"""
-		Retrun a row-column flipped 2-d array, mostly useful for plotting data, converts rows into columns.
+		Return a row-column flipped 2-d array, mostly useful for plotting data, converts rows into columns.
 	"""
 	if type(wrong[0][0]) is list:
 		raise "Oops, flip2d can only handle 2 dimensional arrays!"
 		exit()
-	import numpy as np
+	from numpy import zeros
 	#UPDATED 1 - 6- 2011: wrong[0] instead of wrong[1]. Thus, all (both) columns must be the same length as col 0!
-	right = np.zeros((len(wrong[0]),len(wrong))) 
+	right = zeros((len(wrong[0]),len(wrong))) 
 	# since Z is always full, but X can vary with the span parameter, it is best to use obCount
 	i = 0
 	for r in wrong:

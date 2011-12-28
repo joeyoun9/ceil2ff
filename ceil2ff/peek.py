@@ -39,6 +39,6 @@ def peek(fd,time=False):
 	# well, that may have been slow, but it got the job done, now plot it!
 	fig = plt.figure()
 	ax = fig.gca()
-	ax.contourf(times,heights,flip2d(vals))
+	ax.contourf(times,heights,flip2d(vals),50)
 	plt.show()
 
