@@ -7,7 +7,7 @@
 
 import matplotlib.pyplot as plt
 
-from ceil2ff import flip2d
+from ceil2ff.obreader import flip2d
 
 def peek(fd,time=False):
 	"""
