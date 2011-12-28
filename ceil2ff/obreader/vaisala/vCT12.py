@@ -1,6 +1,7 @@
 """
 	Read CT12K obs
 """
+from numpy import exp
 from ceil2ff.obreader import *
 #FIXME - ARRRGGG
 
@@ -11,15 +12,12 @@ def read(ob,**kwargs):
 		-- however, cloud heights may not be in feet
 		"""
 	SCALING_FACTOR = 1.0e7
-	if not scaled:
-		SCALING_FACTOR = 1
 	obtime = int(ob['time'])
-
 	dl = ob['rest'].split("\n")
 
 	# hold extra header information
 	cld = 'CT12'+dl[1].strip()+dl[2].strip()
-	
+	"""
 	# well, now we have to read the first status line (line 2)
 	data = dl[0].strip()
 	# first check if this is feet or meters:
@@ -34,7 +32,8 @@ def read(ob,**kwargs):
 		cld = [det_hts(H1),det_hts(H2)] # T values are something odd, backscatter range
 	elif N == 3:
 		cld = [-999] # this is a precip trigger! 
-	
+	"""
+
 	#print "CT12K Data ...",ob[4].strip(),obtime,'sdfds'
 	hts = []
 	values = []
@@ -57,8 +56,9 @@ def read(ob,**kwargs):
 				continue
 			# compute the backscattered value!
 			# format : raw - minV = exp((DD/50) - 1) So, it will be normalized...
-			values.append(exp( (int(l[i:i+2],16)/50) - 1)) #lets try the value squared...
-	out = {'t':obtime,'h':15,'v':values,'c':cld} # 15 m vertical resolution is the only reportable form!
+			val = (int(l[i:i+2],16)/50.) - 1.
+			values.append(val) #lets try the value squared...
+	out = {'t':obtime,'h':15,'v':exp(values),'c':cld} # 15 m vertical resolution is the only reportable form!
 	return out
 
 
