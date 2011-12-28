@@ -35,10 +35,11 @@ def peek(fd,time=False):
 			vals.append(od[3:])
 			times.append(t)
 			heights = [x * int(od[1]) for x in range(len(od[3:]))] # not append!
-	#print vals,t,od[0:3]
-	# well, that may have been slow, but it got the job done, now plot it!
+	print "Plotting"
+	# and now plot
 	fig = plt.figure()
 	ax = fig.gca()
-	ax.contourf(times,heights,flip2d(vals),50)
+	ceil = ax.contourf(times,heights,flip2d(vals),50)
+	plt.colorbar(ceil).set_label('Attenuated Backscatter $m^{-1}sr^{-1}$')
 	plt.show()
 
