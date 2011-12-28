@@ -407,3 +407,24 @@ def det_hts(ht):
 def chunk(l,i0,n):
 	return [l[i:i+n] for i in range(i0,len(l), n)]
 
+
+def flip2d(wrong):
+	"""
+		Retrun a row-column flipped 2-d array, mostly useful for plotting data, converts rows into columns.
+	"""
+	if type(wrong[0][0]) is list:
+		raise "Oops, flip2d can only handle 2 dimensional arrays!"
+		exit()
+	import numpy as np
+	#UPDATED 1 - 6- 2011: wrong[0] instead of wrong[1]. Thus, all (both) columns must be the same length as col 0!
+	right = np.zeros((len(wrong[0]),len(wrong))) 
+	# since Z is always full, but X can vary with the span parameter, it is best to use obCount
+	i = 0
+	for r in wrong:
+		c = 0
+		for v in r:
+			right[c][i] = v
+			c+=1
+		i+=1
+	return right	
+
