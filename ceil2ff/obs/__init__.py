@@ -9,9 +9,10 @@ import os,calendar,time
 from numpy import nan,array,log10,exp
 import numpy as np
 
-__all__ = ['vaisala']
+__all__ = ['formats']
 
-from ceil2ff.obreader.vaisala import *
+from ceil2ff.obs.formats import *
+
 	
 def ReadRaw(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=False):
 	"""

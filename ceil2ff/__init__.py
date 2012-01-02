@@ -18,9 +18,9 @@ import os,calendar,time
 from numpy import nan,array,log10,exp
 import numpy as np
 
-__all__ = ['obreader','peek','go','getObs']
+__all__ = ['obs','peek']
 
-import obreader
+import obs
 
 def go(directory='.',out='./ceil.dat'):
 	"""
@@ -96,7 +96,7 @@ def getObs(fd):
 
 	# well, now read through the obs, and append them to the sortable dict
 	for ob in fobs:
-		info = obreader.ReadRaw(ob) 
+		info = obs.ReadRaw(ob) 
 		# get an entire observation, so that this doesnt get redone
 		if not info:
 			# dont append that guy!

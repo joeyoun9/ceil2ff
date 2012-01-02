@@ -2,7 +2,7 @@
 	Read CT12K obs
 """
 from numpy import exp
-from ceil2ff.obreader import *
+from ceil2ff.obs import *
 #FIXME - ARRRGGG
 
 def read(ob,**kwargs):
