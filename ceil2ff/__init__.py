@@ -22,7 +22,19 @@ __all__ = ['obs','peek']
 
 import obs
 
-def go(directory='.',out='./ceil.dat'):
+def compressFile(input_file,out='./ceil.dat'):
+	"""
+	Compress only a specific file.
+	
+	Inputs:
+		filename    = absolute reference to the file to be read
+		out         = Filename where data are saved
+
+	"""	
+	files = [input_file]
+	save(files,out)
+
+def compressDir(directory='.',out='./ceil.dat'):
 	"""
 		Read in Ceilometer data from raw data files
 		
@@ -31,8 +43,12 @@ def go(directory='.',out='./ceil.dat'):
 	stime = time.time() # for efficiency monitoring purposes.
 	# BEGIN - *recursively* open every file in the provided directories!
 	# do not open the same file twice.
-	f = open(out,'w')
 	files = os.listdir(directory) # not currently recursive...
+
+	save(files,out)
+
+def save(files,out):
+	f = open(out,'w')
 	for fd in files:
 		# check that the file is a file:
 		if os.path.isdir(fd):
