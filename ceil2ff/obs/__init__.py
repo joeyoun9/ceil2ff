@@ -15,6 +15,7 @@ from ceil2ff.obs.formats import *
 
 	
 def ReadRaw1(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=False):
+	print ob
 	"""
 	/// THIS IS FORMAT #1 SO IT IS DEISGNED FOR FILES CREATED BY VAISALA SOFTWARE!
 		A mthod to transcribe raw obs, split by EOM character
@@ -63,15 +64,19 @@ def ReadRaw2(ob):
 	ob = ob.strip() # clear unknown whitespace (including control characters)
 	p = ob.split("\n") # split by lines instead of control characters, since they are now unreliable
 	# now we need to check the length of the ob,
-	date_str = p[0].strip().strip().strip().strip().strip()
-	obtime = 1234+int(date_str[-2])
-	#int(date_str[-2:])#int(date_str[-6:-5]+date_str[-5:-3]+date_str[-3:])# calendar.timegm(time.strptime(date_str.strip(),'%Y/%m/%d %H:%M:%S'))
+	date_str = p[-1].strip()
+	### DATE STRING ISSUE, sometimes there are quotes!! damnation!
+	if '"' in date_str:
+		date_str = date_str[2:-2]
+		print 'corrected:'+date_str
+	obtime = calendar.timegm(time.strptime(date_str.strip(),'%m/%d/%Y %H:%M:%S'))
+	print 'Date',date_str,obtime
 	# now, #FIXME - assuming no code currently (CT12)
 	# FIXME reassembling the data message should be done simply by just giving the whole darn ob
 	rest = ""
-	for l in p[1:]:
+	for l in p[:-1]:
 		rest += l+"\n"
-	out = {'time':obtime,'code':[0],'rest':rest} # that should figure it out
+	out = {'time':obtime,'code':[0],'rest':rest.strip()} # that should figure it out
 	return IDprofile(out)
 	
 	

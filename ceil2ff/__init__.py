@@ -122,7 +122,8 @@ def getObs(fd):
 		if not typ == "dat" and not typ == "DAT":
 			print "Sorry, I can only read type .dat files"
 			return False
-		fobs = fl.split("\n\n") # this is the simpler breakup format... I hope
+		fobs = fl.split(unichr(2)) # this is the simpler breakup format... I hope
+		print len(fobs)
 		reader_func = obs.ReadRaw2 # and use reader #2!
 	if len(fobs) < 2:
 		# looks like there are no obs...
@@ -130,7 +131,7 @@ def getObs(fd):
 
 	# well, now read through the obs, and append them to the sortable dict
 	for ob in fobs:
-		info = reader_func(ob) 
+		info = reader_func(ob.strip()) 
 		# get an entire observation, so that this doesnt get redone
 		if not info:
 			# dont append that guy!

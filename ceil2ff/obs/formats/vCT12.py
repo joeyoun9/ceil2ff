@@ -11,10 +11,15 @@ def read(ob,**kwargs):
 		-- this instrument formats it's data in feet, so, you must use feet
 		-- however, cloud heights may not be in feet
 		"""
+	# check if the text you have been given is a proper ct12 message:
+	if ob['rest'][0] == '3':
+		# then the system is warming up, and we should skip
+		return False
 	SCALING_FACTOR = 1.0e7
 	obtime = int(ob['time'])
 	dl = ob['rest'].split("\n")
-
+	if len(dl) > 15 or ":" in ob['rest']:
+		return False
 	# hold extra header information
 	cld = 'CT12'+dl[1].strip()+dl[2].strip()
 	"""
