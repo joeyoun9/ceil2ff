@@ -14,8 +14,9 @@ __all__ = ['formats']
 from ceil2ff.obs.formats import *
 
 	
-def ReadRaw(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=False):
+def ReadRaw1(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=False):
 	"""
+	/// THIS IS FORMAT #1 SO IT IS DEISGNED FOR FILES CREATED BY VAISALA SOFTWARE!
 		A mthod to transcribe raw obs, split by EOM character
 		quickly into something desireable - getting out header and time info
 
@@ -24,8 +25,10 @@ def ReadRaw(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=
 
 		# -- when split by the term character, the endline/checksum may be included
 			-- disregard it
-	"""
 
+		-> So, this function will attempt to isolate individual profiles in a more dynamic fashion
+		
+	"""
 	out = {} # a dict will be returned
 	p = ob.split(unichr(2)) # this will always split the time stamp from the data stream
 	if len(p) < 2: 
@@ -38,6 +41,7 @@ def ReadRaw(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=
 
 	#FIXME - make the timestamp reading more dynamic!
 	obtime = calendar.timegm(time.strptime(head[-2].strip()+"UTC","-%Y-%m-%d %H:%M:%S%Z"))
+			
 
 	out = {'time':obtime,'code':code,'rest':p[1]}
 	###if not full: # no longer an option
@@ -45,7 +49,32 @@ def ReadRaw(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=
 	# well, now we are going to get the full profile, so go!
 	return IDprofile(out) # compacting the operation into one!
 	
+def ReadRaw2(ob):
+	"""
+	ReadRaw2 is a function which will read raw files in format #2, this is going to be hard coded
+	to a more specific format... however, it is included anyway.
+	
+	Inputs:
+		ob	=	chunk of text representing a received ob, which will be analyzed
 
+	IDprofile will be hopefully still used
+	"""
+	out = {}
+	ob = ob.strip() # clear unknown whitespace (including control characters)
+	p = ob.split("\n") # split by lines instead of control characters, since they are now unreliable
+	# now we need to check the length of the ob,
+	date_str = p[0].strip().strip().strip().strip().strip()
+	obtime = 1234+int(date_str[-2])
+	#int(date_str[-2:])#int(date_str[-6:-5]+date_str[-5:-3]+date_str[-3:])# calendar.timegm(time.strptime(date_str.strip(),'%Y/%m/%d %H:%M:%S'))
+	# now, #FIXME - assuming no code currently (CT12)
+	# FIXME reassembling the data message should be done simply by just giving the whole darn ob
+	rest = ""
+	for l in p[1:]:
+		rest += l+"\n"
+	out = {'time':obtime,'code':[0],'rest':rest} # that should figure it out
+	return IDprofile(out)
+	
+	
 def IDprofile(ob):
 	"""
 		IDprofile

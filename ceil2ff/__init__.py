@@ -102,17 +102,35 @@ def getObs(fd):
 	f = open(fd,'r')
 	# now the file is open, read through it and save each identifyable profile
 	# split by control character unichr(3), then shave off the top of these elements
-	eom = unichr(3)
+	eom = unichr(3) #(^C when viewed in VI)
 	fl = f.read() # put the whole thing into a string
 	f.close()
-	fobs = fl.split(eom) # break the string up by obs
+	"""
+		This is an update - there are times where the eom character is not ideal for splitting
+		How to detect this, I do not know! But, sometimes simply splitting is not good enough
+	"""
+	if len(fl) == 0:
+		# well, that file is a dud.
+		return False
+	elif fl[0] == '-':
+		# generally a sign that this is a vaisala production
+		fobs = fl.split(eom) # break the string up by obs
+		reader_func = obs.ReadRaw1
+	else:
+		# however, we also need to make sure this is a ceil data file
+		typ = f.name.split('.')[-1]
+		if not typ == "dat" and not typ == "DAT":
+			print "Sorry, I can only read type .dat files"
+			return False
+		fobs = fl.split("\n\n") # this is the simpler breakup format... I hope
+		reader_func = obs.ReadRaw2 # and use reader #2!
 	if len(fobs) < 2:
 		# looks like there are no obs...
 		return False
 
 	# well, now read through the obs, and append them to the sortable dict
 	for ob in fobs:
-		info = obs.ReadRaw(ob) 
+		info = reader_func(ob) 
 		# get an entire observation, so that this doesnt get redone
 		if not info:
 			# dont append that guy!
