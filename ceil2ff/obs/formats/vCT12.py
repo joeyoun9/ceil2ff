@@ -61,7 +61,7 @@ def read(ob,**kwargs):
 				continue
 			# compute the backscattered value!
 			# format : raw - minV = exp((DD/50) - 1) So, it will be normalized...
-			val = (int(l[i:i+2],16)/50.) - 1.
+			val = (int(l[i:i+2],16) - 1)/50.
 			values.append(val) #lets try the value squared...
 	out = {'t':obtime,'h':15,'v':exp(values),'c':cld} # 15 m vertical resolution is the only reportable form!
 	return out
