@@ -15,7 +15,6 @@ from ceil2ff.obs.formats import *
 
 	
 def ReadRaw1(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write=False):
-	print ob
 	"""
 	/// THIS IS FORMAT #1 SO IT IS DEISGNED FOR FILES CREATED BY VAISALA SOFTWARE!
 		A mthod to transcribe raw obs, split by EOM character
@@ -43,10 +42,10 @@ def ReadRaw1(ob,full=False,check=False,scaled=True,max_ht=3500,extra=False,write
 	#FIXME - make the timestamp reading more dynamic!
 	obtime = calendar.timegm(time.strptime(head[-2].strip()+"UTC","-%Y-%m-%d %H:%M:%S%Z"))
 			
-
-	out = {'time':obtime,'code':code,'rest':p[1]}
-	###if not full: # no longer an option
-	###	return out
+	
+	# we need to return 'rest' as a stripped input...
+	out = {'time':obtime,'code':code,'rest':p[1].strip()}
+ 
 	# well, now we are going to get the full profile, so go!
 	return IDprofile(out) # compacting the operation into one!
 	
@@ -65,12 +64,12 @@ def ReadRaw2(ob):
 	p = ob.split("\n") # split by lines instead of control characters, since they are now unreliable
 	# now we need to check the length of the ob,
 	date_str = p[-1].strip()
+
 	### DATE STRING ISSUE, sometimes there are quotes!! damnation!
 	if '"' in date_str:
 		date_str = date_str[2:-2]
-		print 'corrected:'+date_str
+		#print 'corrected:'+date_str # hopefully this correction is accurate for the new files!
 	obtime = calendar.timegm(time.strptime(date_str.strip(),'%m/%d/%Y %H:%M:%S'))
-	print 'Date',date_str,obtime
 	# now, #FIXME - assuming no code currently (CT12)
 	# FIXME reassembling the data message should be done simply by just giving the whole darn ob
 	rest = ""
@@ -94,7 +93,8 @@ def IDprofile(ob):
 		# this is a CT12 message!
 		return vCT12.read(ob)
 
-	elif len(ob['rest'].split("\n")[-2]) > 1500: # data line is [-2] for msg 1 & 2
+	# corrected 5 Jan 2012 for .strip() on ob string, changed data line from [-2] to [-1]
+	elif len(ob['rest'].split("\n")[-1]) > 1500: # data line is [-2] for msg 1 & 2
 		# then this is a CL31 message
 		return vCL31.read(ob)
 

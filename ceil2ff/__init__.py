@@ -40,11 +40,12 @@ def compressDir(directory='.',out='./ceil.dat'):
 		
 	"""
 	print "Attempting to read Vaisala Ceilometer Data"
+	if not directory[-1] == "/":
+		directory += "/"
 	stime = time.time() # for efficiency monitoring purposes.
 	# BEGIN - *recursively* open every file in the provided directories!
 	# do not open the same file twice.
-	files = os.listdir(directory) # not currently recursive...
-
+	files = [directory + F for F in os.listdir(directory)] # not currently recursive...
 	save(files,out)
 
 def save(files,out):
@@ -102,29 +103,28 @@ def getObs(fd):
 	f = open(fd,'r')
 	# now the file is open, read through it and save each identifyable profile
 	# split by control character unichr(3), then shave off the top of these elements
-	eom = unichr(3) #(^C when viewed in VI)
+	eom = unichr(3) # end of Message (^C when viewed in VI)
+	bom = unichr(2) # beginning of message (^B in VI)
 	fl = f.read() # put the whole thing into a string
 	f.close()
 	"""
 		This is an update - there are times where the eom character is not ideal for splitting
 		How to detect this, I do not know! But, sometimes simply splitting is not good enough
 	"""
+
 	if len(fl) == 0:
 		# well, that file is a dud.
 		return False
+
 	elif fl[0] == '-':
+
 		# generally a sign that this is a vaisala production
 		fobs = fl.split(eom) # break the string up by obs
 		reader_func = obs.ReadRaw1
 	else:
-		# however, we also need to make sure this is a ceil data file
-		typ = f.name.split('.')[-1]
-		if not typ == "dat" and not typ == "DAT":
-			print "Sorry, I can only read type .dat files"
-			return False
-		fobs = fl.split(unichr(2)) # this is the simpler breakup format... I hope
-		print len(fobs)
+		fobs = fl.split(bom) # split by beginning of message
 		reader_func = obs.ReadRaw2 # and use reader #2!
+
 	if len(fobs) < 2:
 		# looks like there are no obs...
 		return False

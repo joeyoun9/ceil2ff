@@ -15,7 +15,8 @@ def read(ob,**kwargs):
 	tm = int(ob['time'])
 	data = ob['rest'].split("\n") # split into lines
 
-	prof = data[-2].strip() # important to obliterate that little guy...
+	#UPDATE 5/Jan/2012 - changed data line to -1 because of .strip on the output
+	prof = data[-1].strip() # important to obliterate that little guy...
 
 	code = ob['code']
 

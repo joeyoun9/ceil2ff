@@ -27,8 +27,11 @@ def read(ob,scaled=True,max_ht=3500,extra=False,write=False,**kwargs):
 		l=l.strip()
 		#FIXME - check for high values!!
 		for i in xrange(3,len(l),4):
-			values.append(int(l[i:i+4],16)/SCALING_FACTOR)
-			hts.append(hght)
+			val = l[i:i+4]
+			if val[0] == 'F':
+				values.append(1e-7)
+			else:
+				values.append(int(val,16)/SCALING_FACTOR)
 		""""""
 	out = {'t':ob['time'],'h':30,'v':values,'c':cld} # yes, 30 m resolution! how terrible!
 	if write:
