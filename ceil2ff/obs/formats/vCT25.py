@@ -28,7 +28,7 @@ def read(ob,scaled=True,max_ht=3500,extra=False,write=False,**kwargs):
 		#FIXME - check for high values!!
 		for i in xrange(3,len(l),4):
 			val = l[i:i+4]
-			if val[0] == 'F':
+			if val[0] == 'F' or val == '0000':
 				values.append(1e-7)
 			else:
 				values.append(int(val,16)/SCALING_FACTOR)

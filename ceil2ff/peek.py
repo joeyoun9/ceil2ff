@@ -39,7 +39,7 @@ def peek(fd,time=False):
 	# and now plot
 	fig = plt.figure()
 	ax = fig.gca()
-	ceil = ax.pcolormesh(array(times),array(heights),flip2d(vals))
+	ceil = plt.pcolormesh(array(times),array(heights),flip2d(vals))
 	plt.colorbar(ceil).set_label('Attenuated Backscatter $m^{-1}sr^{-1}$')
 	plt.show()
 
