@@ -6,7 +6,7 @@
 """
 
 import matplotlib.pyplot as plt
-
+from numpy import array
 from tools import flip2d
 
 def peek(fd,time=False):
@@ -39,7 +39,7 @@ def peek(fd,time=False):
 	# and now plot
 	fig = plt.figure()
 	ax = fig.gca()
-	ceil = ax.contourf(times,heights,flip2d(vals),50)
+	ceil = ax.pcolormesh(array(times),array(heights),flip2d(vals))
 	plt.colorbar(ceil).set_label('Attenuated Backscatter $m^{-1}sr^{-1}$')
 	plt.show()
 
