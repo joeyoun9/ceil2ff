@@ -1,5 +1,5 @@
 """
-	peek is a quick utility which enables a simple view of 30 minutes of data from 
+	peek is a quick utility which enables a simple view of 60 minutes of data from 
 	a file that has been created. It is intended to be quick, but we shall see
 
 	REQUIRES MATPLOTLIB
@@ -27,7 +27,7 @@ def peek(fd,time=False):
 		# loop through each line in the file... inefficient, but necessary I think
 		od = ob.split(',')
 		t = int(od[0])
-		if t < time or t > time + 1800:
+		if t < time or t > time + 3600:
 			continue
 			# can't break, since the data may not be in order!
 		else:
@@ -38,7 +38,6 @@ def peek(fd,time=False):
 	print "Plotting"
 	# and now plot
 	fig = plt.figure()
-	ax = fig.gca()
 	ceil = plt.pcolormesh(array(times),array(heights),flip2d(vals))
 	plt.colorbar(ceil).set_label('Attenuated Backscatter $m^{-1}sr^{-1}$')
 	plt.show()

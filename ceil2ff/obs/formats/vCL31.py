@@ -31,7 +31,7 @@ def read(ob,**kwargs):
 
 	for i in xrange(0,len(prof),5):
 		ven = prof[i:i+5]
-		if ven[0:2] == "ff":
+		if ven[0:2] == "ff" or ven == '00000':
 			# logic: ff corresponds to >=ff000, which is ~1e6, which is beyond super high
 			values.append(1e-8)
 		else:
