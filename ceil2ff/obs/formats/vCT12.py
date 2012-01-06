@@ -12,7 +12,7 @@ def read(ob,**kwargs):
 		-- however, cloud heights may not be in feet
 		"""
 	# check if the text you have been given is a proper ct12 message:
-	if ob['rest'][0] == '3':
+	if ob['rest'][0] == '3': # then sky is fully obsured, so skip - fog/warmup/major error
 		# then the system is warming up, and we should skip
 		return False
 	SCALING_FACTOR = 1.0e7

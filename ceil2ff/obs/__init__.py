@@ -63,13 +63,21 @@ def ReadRaw2(ob):
 	ob = ob.strip() # clear unknown whitespace (including control characters)
 	p = ob.split("\n") # split by lines instead of control characters, since they are now unreliable
 	# now we need to check the length of the ob,
-	date_str = p[-1].strip()
+	if len(p) < 15: 
+		return False
+	date_str = p[15].strip() # line 15 should be the date... let us see!
 
 	### DATE STRING ISSUE, sometimes there are quotes!! damnation!
 	if '"' in date_str:
 		date_str = date_str[2:-2]
 		#print 'corrected:'+date_str # hopefully this correction is accurate for the new files!
-	obtime = calendar.timegm(time.strptime(date_str.strip(),'%m/%d/%Y %H:%M:%S'))
+	try:
+		# well, John saves these bad boys in MST, so there you go.
+		obtime = calendar.timegm(time.strptime(date_str.strip()+"UTC",'%m/%d/%Y %H:%M:%S%Z'))
+	except (ValueError):
+		return False
+	#FIXME - so, these times are in MST, but python is not playing nice with MST
+	obtime = obtime + 7*3600
 	# now, #FIXME - assuming no code currently (CT12)
 	# FIXME reassembling the data message should be done simply by just giving the whole darn ob
 	rest = ""
