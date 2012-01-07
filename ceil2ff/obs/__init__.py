@@ -63,7 +63,7 @@ def ReadRaw2(ob):
 	ob = ob.strip() # clear unknown whitespace (including control characters)
 	p = ob.split("\n") # split by lines instead of control characters, since they are now unreliable
 	# now we need to check the length of the ob,
-	if len(p) < 15: 
+	if len(p) < 16: 
 		return False
 	date_str = p[15].strip() # line 15 should be the date... let us see!
 
