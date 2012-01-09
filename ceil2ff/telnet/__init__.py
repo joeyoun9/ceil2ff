@@ -19,12 +19,12 @@
 
 """
 
-import telnet
+import telnetlib
 import signal
 
-import sys,time
+import sys,time,getpass
 
-import ceil2ff.obs.IDprofile as idp
+from  ceil2ff.obs import IDprofile as idp
 
 
 def listen(directory,ip):
@@ -33,7 +33,7 @@ def listen(directory,ip):
 		CURRENTLY tuned for Vaisala CT12K ceilometers.
 	"""
 	HOST = ip
-	if directopry[-1] == "/":
+	if directory[-1] == "/":
 		directory = directory[:-1]
 
 	# LOGIN DECISIONS WILL BE MADE AT A LATER TIME
