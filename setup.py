@@ -8,6 +8,6 @@ setup(name='ceil2ff',
       author='Joe Young',
       author_email='joe.young@utah.edu',
       url='http://www.jsyoung.us/code/',
-      packages=['ceil2ff','ceil2ff.obs','ceil2ff.obs.formats'],
+      packages=['ceil2ff','ceil2ff.obs','ceil2ff.telnet','ceil2ff.obs.formats'],
      )
 
