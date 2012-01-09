@@ -18,7 +18,7 @@ def read(ob,**kwargs):
 	SCALING_FACTOR = 1.0e7
 	obtime = int(ob['time'])
 	dl = ob['rest'].split("\n")
-	if len(dl) > 15 or ":" in ob['rest']:
+	if len(dl) < 15 or ":" in ob['rest']:
 		return False
 	# hold extra header information
 	cld = 'CT12'+dl[1].strip()+dl[2].strip()

@@ -27,45 +27,60 @@ import sys,time,getpass
 from  ceil2ff.obs import IDprofile as idp
 
 
-def listen(directory,ip):
+def listen(directory,server,port=23,pw=False,test=False):
 	"""
 		Open a persistent telnet connection listening for EOM/BOM messages.
 		CURRENTLY tuned for Vaisala CT12K ceilometers.
 	"""
-	HOST = ip
+	HOST = server
 	if directory[-1] == "/":
 		directory = directory[:-1]
 
 	# LOGIN DECISIONS WILL BE MADE AT A LATER TIME
 
-	user = raw_input("Enter your remote account: ")
-	password = getpass.getpass()
-
-	tn = telnetlib.Telnet(HOST)
-
-	tn.read_until("login: ")
-	tn.write(user + "\n")
-	if password:
-	    tn.read_until("Password: ")
-	    tn.write(password + "\n")
-
+	tn = telnetlib.Telnet(HOST,port)
+	if pw:
+		user = raw_input("Enter your remote account: ")
+		password = getpass.getpass()
+	
+	
+		tn.read_until("login: ")
+		tn.write(user + "\n")
+		if password:
+		    tn.read_until("Password: ")
+		    tn.write(password + "\n")
+	
 	# so begins the ideally infinite loop
 	go = True
-	current = tn.read_all()
-	print current
+	print "I'm Listening."
+	#current = tn.read_all()
+	#print current
 	EOM  = unichr(3)
 	BOM = unichr(2)
 	while go:
+		#print time.time()
 		# read until the end of the message
-		ob = tn.read_until(EOM)
+		tn.read_until(BOM)# now it is the start of the message!
+		# now we have filtered off all the pre message schlock.
+		ob = BOM+tn.read_until(EOM)
 		# add a timestamp, and pass the file to the raw data file
 		
 		print ob # this is for giggles right now, hopefully it is good
+
+		# oh, we will need to check this ob, to see if it is useful...
+
 		ts = time.time() # I am saving in EPOCH!!! VICTORY!
 		raw = open(directory+"/raw_data.dat",'a')
-		raw.write("\n"+str(ts)+ob)
+		raw.write("\n"+str(ts)+"\n"+ob)
 		raw.close()
+		if test:
+			# then don't try to analyze the data... it will make angry.
+			continue
 		trans_ob = idp({'time':ts,'code':[0],'rest':ob.strip()})
+		if not trans_ob:
+			# well, that was not a good ob.
+			print "Badly Formatted Observation",ts
+			continue
 		dat = open(directory+"/ceil.dat",'a')
 		vl  =  "" # text holer for the values
 		for v in trans_ob['v']:
