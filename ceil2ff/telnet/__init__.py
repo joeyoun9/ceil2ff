@@ -81,7 +81,7 @@ def listen(directory,server,port=23,pw=False,test=False):
 
 		# edit the runtime file!
 		rt = open(directory+"/.runtime",'w')
-		rt.write(ts)
+		rt.write(str(ts))
 		rt.close()
 
 		trans_ob = idp({'time':ts,'code':[0],'rest':ob.strip()})
