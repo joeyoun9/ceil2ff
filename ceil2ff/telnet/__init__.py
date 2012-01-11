@@ -67,7 +67,7 @@ def listen(directory,server,port=23,pw=False,test=False):
 		ob = BOM+tn.read_until(EOM)
 		# add a timestamp, and pass the file to the raw data file
 		
-		print ob # this is for giggles right now, hopefully it is good
+		print ob[0:100]+"..." # this is for giggles right now, hopefully it is good
 
 		# oh, we will need to check this ob, to see if it is useful...
 
@@ -78,6 +78,12 @@ def listen(directory,server,port=23,pw=False,test=False):
 		if test:
 			# then don't try to analyze the data... it will make angry.
 			continue
+
+		# edit the runtime file!
+		rt = open(directory+"/.runtime",'w')
+		rt.write(ts)
+		rt.close()
+
 		trans_ob = idp({'time':ts,'code':[0],'rest':ob.strip()})
 		if not trans_ob:
 			# well, that was not a good ob.
