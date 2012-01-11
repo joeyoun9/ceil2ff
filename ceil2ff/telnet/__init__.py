@@ -24,6 +24,8 @@ import signal
 
 import sys,time,getpass
 
+from numpy import log10
+
 from  ceil2ff.obs import IDprofile as idp
 
 
@@ -71,7 +73,7 @@ def listen(directory,server,port=23,pw=False,test=False):
 
 		ts = time.time() # I am saving in EPOCH!!! VICTORY!
 		raw = open(directory+"/raw_data.dat",'a')
-		raw.write("\n"+str(ts)+"\n"+ob)
+		raw.write("\n"+str(ts)+"\n"+ob.strip()) # time before ob!
 		raw.close()
 		if test:
 			# then don't try to analyze the data... it will make angry.
@@ -83,18 +85,21 @@ def listen(directory,server,port=23,pw=False,test=False):
 			continue
 		dat = open(directory+"/ceil.dat",'a')
 		vl  =  "" # text holer for the values
-		for v in trans_ob['v']:
+		for v in log10(trans_ob['v']):
 			# copy the values to a comma seperated list
 			vl += ","+str(v)
 		dat.write("\n"+str(ts)+","+str(trans_ob['h'])+vl)
 		dat.close()
-	
+		"""
 		# now, we should check the controls... but meh...
 		#meh indeed. Just kill it if it needs to die...	hopefully
 		command = signal.signal(signal.SIGALARM,read_raw)
 		signal.alarm(1) # check for one second
 		if command == "kill":
 			go = False
+		"""
+		# well, now it is truly infinite... so, just hope for death... 
+		# or restart the serial port
 
 	tn.write("exit\n")
 
