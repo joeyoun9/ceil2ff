@@ -6,7 +6,7 @@
 
 	Saves each profile in a single line [flat file]
 
-	TTTTTTTTTT,RG,SH,DDDDD.DDD,DDDDD.DDD,DDDDD.DDD,DDDDD.DDD,...
+	TTTTTTTTTT,RG,DDDDD.DDD,DDDDD.DDD,DDDDD.DDD,DDDDD.DDD,...
 
 	T = unix timestamp
 	RG = Range gate in meters, how far apart is each ob, starting at 0
@@ -80,7 +80,7 @@ def save(files,out):
 		text = "" # the first character, blank thanks to the new format
 		for i in range(len(profs)):
 			# now each i is a key to an entire profile
-			text += str(times[i])+','+str(hts[i])+',0' # add the time, RG, and SH
+			text += str(times[i])+','+str(hts[i]) # add the time, RG
 			# now loop through the data and add to the line
 			for d in profs[i]:
 				text += ','+str(d)
