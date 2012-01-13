@@ -121,9 +121,12 @@ def getObs(fd):
 		# generally a sign that this is a vaisala production
 		fobs = fl.split(eom) # break the string up by obs
 		reader_func = obs.ReadRaw1
-	else:
+	elif "\"" in fl:
 		fobs = fl.split(bom) # split by beginning of message
 		reader_func = obs.ReadRaw2 # and use reader #2!
+	else:
+		fobs = fl.split(eom)
+		reader_func = obs.ReadRaw3
 
 	if len(fobs) < 2:
 		# looks like there are no obs...

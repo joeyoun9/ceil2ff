@@ -59,6 +59,7 @@ def listen(directory,server,port=23,pw=False,test=False):
 	#print current
 	EOM  = unichr(3)
 	BOM = unichr(2)
+	trig = unichr(4)
 	while go:
 		#print time.time()
 		# read until the end of the message

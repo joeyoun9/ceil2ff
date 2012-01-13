@@ -3,7 +3,6 @@
 """
 from numpy import exp
 from ceil2ff.obs import *
-#FIXME - ARRRGGG
 
 def read(ob,**kwargs):
 	"""
@@ -12,14 +11,25 @@ def read(ob,**kwargs):
 		-- however, cloud heights may not be in feet
 		"""
 	# check if the text you have been given is a proper ct12 message:
+	#FIXME - this may not be apropriate!!!
 	if ob['rest'][0] == '3': # then sky is fully obsured, so skip - fog/warmup/major error
 		# then the system is warming up, and we should skip
 		return False
-	SCALING_FACTOR = 1.0e7
+
 	obtime = int(ob['time'])
-	dl = ob['rest'].split("\n")
-	if len(dl) < 15 or ":" in ob['rest']:
+	dls = ob['rest'].split("\n")
+	dl = []
+	if len(dls) < 15 or ":" in ob['rest']:
 		return False
+
+	# purify the ob so that i dont have to care about formatting
+	for l in dls:
+		if len(l.strip()) > 3:
+			# then i guess there is content
+			dl.append(l) #NOT STRIP!!
+	# ok, let's hope that is good
+		
+
 	# hold extra header information
 	cld = 'CT12'+dl[1].strip()+dl[2].strip()
 	"""
@@ -44,14 +54,15 @@ def read(ob,**kwargs):
 	values = []
 	# data are lines (keys) 4 - 16 # 2 digit hex, (rounded) FF = overflow
 	# the first values are heights of the beginning of the row...
-	for l in dl[3:15]:
+	for l in dl[2:15]:
 		l = l.rstrip()
+		#print l
 		h0 = int(l[0:2])*1000 # FEET!
 		_ = -1 # this is the multiplier for each ob per line
 		# each ob is 50 feet higher than h0 
 		#print l[2:2+2]," L:",l
 		badline = False # new line, hopefully, things have improved
-		for i in xrange(2,len(l[2:]), 2):
+		for i in xrange(2,len(l[2:])+1, 2):
 
 			# sadly, there is a small glitch in the way these messages are saved
 			if l[i:i+2] == '  ' or badline:
@@ -62,7 +73,9 @@ def read(ob,**kwargs):
 			# compute the backscattered value!
 			# format : raw - minV = exp((DD/50) - 1) So, it will be normalized...
 			val = (int(l[i:i+2],16) - 1)/50.
-			values.append(val) #lets try the value squared...
+			#print l[i:i+2],val
+			values.append(val)
+	#print len(values) # should be 250
 	out = {'t':obtime,'h':15,'v':exp(values),'c':cld} # 15 m vertical resolution is the only reportable form!
 	return out
 

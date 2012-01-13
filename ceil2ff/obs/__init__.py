@@ -85,6 +85,21 @@ def ReadRaw2(ob):
 		rest += l+"\n"
 	out = {'time':obtime,'code':[0],'rest':rest.strip()} # that should figure it out
 	return IDprofile(out)
+
+def ReadRaw3(ob):
+	"""
+		Reads in data from the telnet library!
+	"""
+	out = {}
+	ob = ob.strip()
+	p = ob.split(unichr(2)) # split by beginning character - input is split by EOM
+	if len(p) < 2:
+		return False
+	obtime = float(p[0].strip())
+	rest = p[1].strip()
+	#FIXME - hardcoded for code free CT12 messages!!!
+	out = {'time':obtime,'code':[0],'rest':rest.strip()}
+	return IDprofile(out)
 	
 	
 def IDprofile(ob):
