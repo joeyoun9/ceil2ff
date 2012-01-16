@@ -10,11 +10,8 @@ def read(ob,**kwargs):
 		-- this instrument formats it's data in feet, so, you must use feet
 		-- however, cloud heights may not be in feet
 		"""
-	# check if the text you have been given is a proper ct12 message:
-	#FIXME - this may not be apropriate!!!
-	if ob['rest'][0] == '3': # then sky is fully obsured, so skip - fog/warmup/major error
-		# then the system is warming up, and we should skip
-		return False
+	# check if the text you have been given is a proper ct12 message: #FIXME 
+
 
 	obtime = int(ob['time'])
 	dls = ob['rest'].split("\n")
