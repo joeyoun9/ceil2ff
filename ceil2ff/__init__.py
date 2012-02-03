@@ -67,26 +67,28 @@ def save(files,out):
 		profs = []
 		times = []
 		hts = []
+		statl = [] # for cloud/status infomrmation
 		for ob in obs:
 			# heights, time, values, and the extra fun stuff (clouds, stats, whatnot)
 			profs.append(ob['v'])  # this is the entire profile.
 			times.append(ob['t'])  # this is the time of the ob
 			hts.append(ob['h']) # this is just the distance between range gates
+			statl.append(ob['c']) # get status/cloud information
+			
 		"""
 			And write the flatfile!!
 		"""
-		profs = log10(profs) # do not flip!! # not saving log10'd 
+		#profs = profs # do not flip!! # not saving log10'd!!!!!!!!!! 
 		# then loop through the data - AND ASSEMBLE THE DATA LINE!
 		text = "" # the first character, blank thanks to the new format
 		for i in range(len(profs)):
 			# now each i is a key to an entire profile
-			text += str(times[i])+','+str(hts[i]) # add the time, RG
+			text = str(times[i])+','+str(hts[i])+','+statl[i] # add the time, RG, status info
 			# now loop through the data and add to the line
 			for d in profs[i]:
 				text += ','+str(d)
 			text += "\n" # add the requisite newline!
-		# then it is all ready!
-		f.write(text)
+			f.write(text)
 
 	f.close()
 	return True
@@ -143,7 +145,7 @@ def getObs(fd):
 	del fl # does this garbage collect?
 	del fobs
 	# now we have the obs... we need to go through them and order by time!
-	
+	print "sorting"
 	## then we will sort the dict, and return
 	dk = sorted(d.keys())
 

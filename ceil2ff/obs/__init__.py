@@ -76,6 +76,7 @@ def ReadRaw2(ob):
 		obtime = calendar.timegm(time.strptime(date_str.strip()+"UTC",'%m/%d/%Y %H:%M:%S%Z'))
 	except (ValueError):
 		return False
+	# FIXME - this may not be true anymore... 2 Feb 2012
 	#FIXME - so, these times are in MST, but python is not playing nice with MST
 	obtime = obtime + 7*3600
 	# now, #FIXME - assuming no code currently (CT12)

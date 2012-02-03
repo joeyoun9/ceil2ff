@@ -85,17 +85,17 @@ def listen(directory,server,port=23,pw=False,test=False):
 		rt.write(str(ts))
 		rt.close()
 
-		trans_ob = idp({'time':ts,'code':[0],'rest':ob.strip()})
+		trans_ob = idp({'time':ts,'code':[0],'rest':ob.strip()}) #CT12 only!!
 		if not trans_ob:
 			# well, that was not a good ob.
 			print "Badly Formatted Observation",ts
 			continue
 		dat = open(directory+"/ceil.dat",'a')
 		vl  =  "" # text holer for the values
-		for v in log10(trans_ob['v']):
+		for v in trans_ob['v']:
 			# copy the values to a comma seperated list
 			vl += ","+str(v)
-		dat.write("\n"+str(ts)+","+str(trans_ob['h'])+vl)
+		dat.write("\n"+str(ts)+","+str(trans_ob['h'])+","+trans_ob['c']+vl)
 		dat.close()
 		"""
 		# now, we should check the controls... but meh...

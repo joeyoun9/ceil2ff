@@ -10,8 +10,11 @@ def read(ob,**kwargs):
 		-- this instrument formats it's data in feet, so, you must use feet
 		-- however, cloud heights may not be in feet
 		"""
-	# check if the text you have been given is a proper ct12 message: #FIXME 
-
+	# check if the text you have been given is a proper ct12 message:
+	#FIXME - this may not be apropriate!!!
+	###if ob['rest'][0] == '3': # then sky is fully obsured, so skip - fog/warmup/major error
+	###	# then the system is warming up, and we should skip
+	###	return False
 
 	obtime = int(ob['time'])
 	dls = ob['rest'].split("\n")
@@ -45,6 +48,34 @@ def read(ob,**kwargs):
 	elif N == 3:
 		cld = [-999] # this is a precip trigger! 
 	"""
+	# get extra information!!!
+	text = "" # holds the strings
+	#tl = dls[0].strip()
+	
+	cl = dl[0].strip()
+	data = [
+	cl[0:1],
+	cl[4:9],
+	cl[10:15],
+	cl[16:21],
+	cl[22:27]
+	] + [x for x in cl[28:39]]
+	il = dl[1].strip()
+	data += [
+	il[0:1],
+	il[2:3],
+	il[4:8],
+	il[9:12],
+	il[13:16],
+	il[17:20],
+	il[21:25],
+	il[26:31],
+	il[32:34],
+	il[35:37],
+	]
+	for d in data:
+		text += d+"|" # use pipes to seperate these values, to be simpler.
+	# ok, now text holds the necessary values!
 
 	#print "CT12K Data ...",ob[4].strip(),obtime,'sdfds'
 	hts = []
@@ -73,7 +104,7 @@ def read(ob,**kwargs):
 			#print l[i:i+2],val
 			values.append(val)
 	#print len(values) # should be 250
-	out = {'t':obtime,'h':15,'v':exp(values),'c':cld} # 15 m vertical resolution is the only reportable form!
+	out = {'t':obtime,'h':15,'v':exp(values),'c':text} # 15 m vertical resolution is the only reportable form!
 	return out
 
 
