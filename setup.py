@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='ceil2ff',
-      version='1.0',
+      version='2.0',
       description='Ceilometer Data Reader',
       author='Joe Young',
       author_email='joe.young@utah.edu',

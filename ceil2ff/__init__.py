@@ -17,6 +17,8 @@
 import os,calendar,time
 from numpy import nan,array,log10,exp
 import numpy as np
+import ob as obc 
+import save as sv
 
 __all__ = ['obs','peek']
 
