@@ -106,7 +106,7 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 	BOM = unichr(2)
 	while go:
 		# READ THE CONTROLLER FILE
-		tc = open(directory +"/.ceiltel_stop",'r');
+		tc = open(directory +"/.tel_control",'r');
 		command = tc.read()
 		tc.close()
 		if not command == "go":
