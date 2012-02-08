@@ -25,7 +25,7 @@ DIRECTORY = '.'
 FNAME = 'ceil_raw.dat'
 
 
-def listen(host,port=23,pw=False,directory='.',fname='ceil_raw.dat'):
+def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 	"""
 		Open a persistent telnet connection listening for EOM/BOM messages.
 		TUNED for Vaisala ceilometers, with standard EOM/BOM messages
@@ -44,14 +44,15 @@ def listen(host,port=23,pw=False,directory='.',fname='ceil_raw.dat'):
 		port:................Port on the referenced server to connect to
 					defaults to 23 (std. telnet)
 
-		pw:..................A binary indicator if a password will be required
-					for the unit logged into
-
 		directory:...........Directory where the file should be stored 
 					This dir also holds the two control files
 
 		fname:...............Filename of output file. Will be the name of the 
 					file within the previously specified directory
+
+		pw:..................A binary indicator if a password will be required
+					for the unit logged into
+
 	"""
 	# check the controls for running this system, and exit if necessary
 	# so, there are two things to check
@@ -135,7 +136,7 @@ def listen(host,port=23,pw=False,directory='.',fname='ceil_raw.dat'):
 
 if __name__ == "__main__":
 
-	listen(HOST,PORT,PW,DIRECTORY,FNAME)
+	listen(HOST,PORT,DIRECTORY,FNAME,PW)
 	
 	
 	
