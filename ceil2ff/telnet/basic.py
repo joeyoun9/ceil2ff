@@ -56,9 +56,9 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 	"""
 	# check the controls for running this system, and exit if necessary
 	# so, there are two things to check
-	if os.path.exists(directory +"/.ceiltel_stop"):
+	if os.path.exists(directory +"/.tel_control"):
 		# well, that file exists
-		tc = open(directory +"/.ceiltel_stop",'r');
+		tc = open(directory +"/.tel_control",'r');
 		command = tc.read()
 		tc.close()
 		# if this == 'wait' then hold off
@@ -95,7 +95,7 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 		    tn.write(password + "\n")
 	
 	# open the 'control' file to allow simple way to turn the file off
-	tc = open(directory + "/.ceiltel_stop",'w') # should safely create the file
+	tc = open(directory + "/.tel_control",'w') # should safely create the file
 	tc.write('go')
 	tc.close()
 	go = True
