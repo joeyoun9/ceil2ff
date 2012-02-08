@@ -109,7 +109,7 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 		tc = open(directory +"/.tel_control",'r');
 		command = tc.read()
 		tc.close()
-		if not command == "go":
+		if command == "wait":
 			go = False
 			# at the next go-around, it will quit (~35 seconds)
 		# read until the end of the message
