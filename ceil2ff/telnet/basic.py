@@ -14,15 +14,15 @@
 """
 # inputs for direct running of the telnet library 
 
-import telnetlib
+import telnetlib,os
 
 import sys,time,getpass
 
-HOST = None
-PORT = None
-PW = None
-DIRECTORY = None
-FNAME = None
+HOST = '111.111.111.111'
+PORT = 23
+PW = False
+DIRECTORY = '.'
+FNAME = 'ceil_raw.dat'
 
 
 def listen(host,port=23,pw=False,directory='.',fname='ceil_raw.dat'):
@@ -53,8 +53,26 @@ def listen(host,port=23,pw=False,directory='.',fname='ceil_raw.dat'):
 		fname:...............Filename of output file. Will be the name of the 
 					file within the previously specified directory
 	"""
-	
-	print "connecting to ",HOST,"\non port",PORT
+	# check the controls for running this system, and exit if necessary
+	# so, there are two things to check
+	if os.path.exists(directory +"/.ceiltel_stop"):
+		# well, that file exists
+		tc = open(directory +"/.ceiltel_stop",'r');
+		command = tc.read()
+		tc.close()
+		# if this == 'wait' then hold off
+		if command == 'wait':
+			exit()
+	# now check if the last ob was less than 2 minutes
+	if os.path.exists(directory +"/.runtime"):
+		tc = open(directory +"/.runtime",'r');
+		stamp = tc.read()
+		tc.close()
+		if stamp and time.time() - int(stamp) < 120 and not command=='restart':
+			exit()
+	# otherwise we can go, if we made it here, then the logic is good.
+
+	print "connecting to ",host,"\non port",port
 
 	HOST = host
 	if directory[-1] == "/":
@@ -116,21 +134,8 @@ def listen(host,port=23,pw=False,directory='.',fname='ceil_raw.dat'):
 	tn.write("exit\n") # attempt to close properly
 
 if __name__ == "__main__":
-	# this is being run from the shell (or crontab)
-	# so, there are two things to check
-	tc = open(directory +"/.ceiltel_stop",'r');
-	command = tc.read()
-	tc.close()
-	# if this == 'wait' then hold off
-	if command == 'wait':
-		exit()
-	# now check if the last ob was less than 2 minutes
-	tc = open(directory +"/.runtime",'r');
-	stamp = tc.read()
-	tc.close()
-	if not stamp or time.time() - int(stamp) > 120 or command=='restart':
-		# ok, its more than 2 minutes run
-		listen(HOST,PORT,PW,DIRECTORY,FNAME)
+
+	listen(HOST,PORT,PW,DIRECTORY,FNAME)
 	
 	
 	
