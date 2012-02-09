@@ -23,9 +23,9 @@ import sys,time,getpass
 
 HOST = '111.111.111.111'
 PORT = 23
-PW = False
 DIRECTORY = '.'
 FNAME = 'ceil_raw.dat'
+PW = False
 
 
 
