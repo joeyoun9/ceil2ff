@@ -18,11 +18,15 @@ import telnetlib,os
 
 import sys,time,getpass
 
+# THESE ARE DEFAULT VALUES - CHANGE THEM TO YOUR SPECIFIC SETUP IF YOU
+# ARE JUST RUNNING THIS CODE ON A CRON
+
 HOST = '111.111.111.111'
 PORT = 23
 PW = False
 DIRECTORY = '.'
 FNAME = 'ceil_raw.dat'
+
 
 
 def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
@@ -36,7 +40,7 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 		This does not call any translators, so, do not run it expecting it to
 		do any more than create a file.
 		
-		Inputs:
+		>>> Inputs:
 		
 		host:................Reference to the location of the ceilometer
 					eg. 100.123.3.2 (any valid network address)
@@ -136,6 +140,7 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 
 if __name__ == "__main__":
 
+	# the code is being run independently, so call the listener
 	listen(HOST,PORT,DIRECTORY,FNAME,PW)
 	
 	
