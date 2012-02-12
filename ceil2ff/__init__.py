@@ -19,6 +19,7 @@ from numpy import nan,array,log10,exp
 import numpy as np
 import ob as obc 
 import save as sv
+from obs import IDprofile
 
 __all__ = ['obs','peek']
 
@@ -119,9 +120,21 @@ def getObs(fd):
 	if len(fl) == 0:
 		# well, that file is a dud.
 		return False
+	# ok, new plan - always split by the EOM character
+	# then split by the BOM character 
+	# -- check the first and last ones to see if there is a time on either end
+	
+	fobs = fl.split(eom) # now check the first and last
+	# FIXME there is risk in this method, but it works better
+	tsb = True # boolean - true indicates time stamp before message
+	if bom not in fobs[-1]:
+		# then the time follows the message! 
+		# the last element is a time, not a message
+		# now I have to factor this information in
+		tsb = False
+	"""
 
 	elif fl[0] == '-':
-
 		# generally a sign that this is a vaisala production
 		fobs = fl.split(eom) # break the string up by obs
 		reader_func = obs.ReadRaw1
@@ -135,10 +148,46 @@ def getObs(fd):
 	if len(fobs) < 2:
 		# looks like there are no obs...
 		return False
-
+	
 	# well, now read through the obs, and append them to the sortable dict
-	for ob in fobs:
-		info = reader_func(ob.strip()) 
+	"""
+	for ob_key in range(len(fobs)):
+		ttext = "" # time text
+		ob = fobs[ob_key]
+		if bom not in ob:
+			continue
+		obp = ob.split(bom)
+		if tsb:
+			ttext = obp[0].strip()
+		else:
+			ttext = fobs[ob_key+1].split(bom)[0].strip()
+		# now attempt to understand the time!
+		try:
+			# perhaps it is an epoch time
+			tm = float(ttext.strip()) 
+		except ValueError:
+			try:
+				#ok, maybe it is horel formatted
+				# there may be quotes!
+				if '"' in ttext:
+					ttext = ttext[2:-2]
+
+				tm = calendar.timegm(time.strptime(ttext.strip()+"UTC",'%m/%d/%Y %H:%M:%S%Z'))
+				# FIXME - this may not be true anymore... 2 Feb 2012
+				#FIXME - so, these times are in MST, but python is not playing nice with MST
+				tm = tm + 7*3600
+			except ValueError:
+				try:
+					# ok, vaisala formatted?
+					tm = calendar.timegm(time.strptime(ttext.strip()+"UTC","-%Y-%m-%d %H:%M:%S%Z"))
+				except ValueError:
+					# And I give up.
+					continue
+	
+		# with that settled, now we know obp[1] == the ob text
+		# FIXME - this does not handle codes properly...ugh (ct25/cl31 problem)	
+		info = IDprofile({'time':tm,'code':[0],'rest':obp[1]}) # gotta get away from codes!!!
+		#######info = reader_func(ob.strip()) 
 		# get an entire observation, so that this doesnt get redone
 		if not info:
 			# dont append that guy!
