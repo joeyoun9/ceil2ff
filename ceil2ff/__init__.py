@@ -62,6 +62,8 @@ def save(files,out_fname):
 	t=False
 	s=False
 	d=False #initialize...
+	global time_index
+	time_index=0
 	for fd in files:
 		# check that the file is a file:
 		if os.path.isdir(fd):
