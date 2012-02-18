@@ -1,9 +1,9 @@
 """
 	Read CT12K obs
 """
-from numpy import exp
+from numpy import exp,zeros,float16
 from ceil2ff.obs import *
-
+from StringIO import StringIO as strio
 def read(ob,**kwargs):
 	"""
 		process ct12 data
@@ -78,10 +78,28 @@ def read(ob,**kwargs):
 	# ok, now text holds the necessary values!
 
 	#print "CT12K Data ...",ob[4].strip(),obtime,'sdfds'
-	hts = []
-	values = []
+	values = zeros((1000)) # 1000 is the default return size! live with it.
 	# data are lines (keys) 4 - 16 # 2 digit hex, (rounded) FF = overflow
 	# the first values are heights of the beginning of the row...
+	string = ob['rest'][len(dl[0]) + len(dl[1]) + 2:].replace(' ','0').replace("\n","").replace("\r","").strip() #faster?
+	index = 0
+	for i in xrange(2,len(string[2:])+1,2):
+		if i%42 == 0: continue # height indices
+		val = (int(string[i:i+2],16)-1)/50. # compute the SS value...
+		values[index] = val
+		index +=1 
+	out = {'t':obtime,'h':15,'v':exp(values),'c':text} # 15 m vertical resolution is the only reportable form!
+	del values
+	return out
+
+
+	"""
+	# the last 2 is for the \n characters nixed in the stripping process
+	#values = fromstring(string,dtype='S1',count=262,delim=2)
+	values = loadtxt(strio(string),dtype=int16)
+	print ob['rest'],values,"\n",string
+	exit()
+	"""
 	for l in dl[2:15]:
 		l = l.rstrip()
 		#print l
@@ -92,19 +110,22 @@ def read(ob,**kwargs):
 		badline = False # new line, hopefully, things have improved
 		for i in xrange(2,len(l[2:])+1, 2):
 
+			#FIXME - need a better way to check for this silly error
 			# sadly, there is a small glitch in the way these messages are saved
+			"""
 			if l[i:i+2] == '  ' or badline:
 				badline = True # then the rest of this line is bad
 				values.append(nan)
-				hts.append(hght)
 				continue
+			"""
 			# compute the backscattered value!
 			# format : raw - minV = exp((DD/50) - 1) So, it will be normalized...
 			val = (int(l[i:i+2],16) - 1)/50.
 			#print l[i:i+2],val
 			values.append(val)
 	#print len(values) # should be 250
-	out = {'t':obtime,'h':15,'v':exp(values),'c':text} # 15 m vertical resolution is the only reportable form!
+	out = {'t':obtime,'h':15,'v':exp(array(values)),'c':text} # 15 m vertical resolution is the only reportable form!
+	del values
 	return out
 
 

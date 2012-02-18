@@ -1,7 +1,7 @@
 """
 	Read CL31 backscatter data
 """
-from numpy import int
+from numpy import int,array
 
 def read(ob,**kwargs):
 	"""
