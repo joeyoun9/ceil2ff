@@ -26,7 +26,7 @@ import sys,time,getpass
 
 from numpy import log10
 
-from  ceil2ff.obs import IDprofile as idp
+from  ceil2ff.formats import *
 
 
 def listen(directory,server,port=23,pw=False,test=False):
@@ -85,17 +85,18 @@ def listen(directory,server,port=23,pw=False,test=False):
 		rt.write(str(ts))
 		rt.close()
 
-		trans_ob = idp({'time':ts,'code':[0],'rest':ob.strip()}) #CT12 only!!
+		trans_ob = vCT12.read({'time':ts,'code':[0],'rest':ob.strip()}) #CT12 only!!
 		if not trans_ob:
 			# well, that was not a good ob.
 			print "Badly Formatted Observation",ts
 			continue
 		dat = open(directory+"/ceil.dat",'a')
 		vl  =  "" # text holer for the values
-		for v in trans_ob['v']:
+		for v in trans_ob['v'][:trans_ob['l']]:
 			# copy the values to a comma seperated list
-			vl += ","+str(v)
-		dat.write("\n"+str(ts)+","+str(trans_ob['h'])+","+trans_ob['c']+vl)
+			# however, this goes through a thousand, even if there are only 250 obs... sorry
+			vl += str(v)+","
+		dat.write("\n"+str(ts)+","+str(trans_ob['h'])+","+trans_ob['c']+","+vl[:-1])
 		dat.close()
 		"""
 		# now, we should check the controls... but meh...

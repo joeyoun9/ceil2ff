@@ -1,7 +1,7 @@
 """
 	Read CT12K obs
 """
-from numpy import exp,zeros,float16
+from numpy import exp,zeros,float32
 from ceil2ff.obs import *
 def read(ob,**kwargs):
 	"""
@@ -54,7 +54,7 @@ def read(ob,**kwargs):
 		text += d+"|" # use pipes to seperate these values, to be simpler.
 	# ok, now text holds the necessary values!
 
-	values = zeros((1000)) # 1000 is the default return size! live with it.
+	values = zeros((1000),dtype=float32) # 1000 is the default return size! live with it.
 	# the first values are heights of the beginning of the row...
 	string = ob['rest'][len(dl[0]) + len(dl[1]) + 2:].replace(' ','0').replace("\n","").replace("\r","").strip() #faster?
 	index = 0
@@ -63,7 +63,7 @@ def read(ob,**kwargs):
 		val = (int(string[i:i+2],16)-1)/50. # compute the SS value...
 		values[index] = val
 		index +=1 
-	out = {'t':obtime,'h':15,'v':exp(values),'c':text} # 15 m vertical resolution is the only reportable form!
+	out = {'t':obtime,'h':15,'v':exp(values),'c':text,'l':250} # 15 m vertical resolution is the only reportable form!
 	del values,il,cl,text,dl
 
 	return out
