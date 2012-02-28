@@ -300,8 +300,6 @@ def getObs(fd):
 
 		# save data in the desired manner. do it silently
 
-		print save_index
-
 		# lots of logical overhead... but it doesn't seem to slow it down too much.
 
 		if op == 1:

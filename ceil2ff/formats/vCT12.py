@@ -2,7 +2,6 @@
 	Read CT12K obs
 """
 from numpy import exp,zeros,float32
-from ceil2ff.obs import *
 def read(ob,**kwargs):
 	"""
 		process ct12 data
