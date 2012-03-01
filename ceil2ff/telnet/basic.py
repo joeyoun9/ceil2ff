@@ -58,22 +58,12 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 					for the unit logged into
 
 	"""
-	# check the controls for running this system, and exit if necessary
-	# so, there are two things to check
-	if os.path.exists(directory +"/.tel_control"):
-		# well, that file exists
-		tc = open(directory +"/.tel_control",'r');
-		command = tc.read()
-		tc.close()
-		# if this == 'wait' then hold off
-		if command == 'wait':
-			exit()
 	# now check if the last ob was less than 2 minutes
 	if os.path.exists(directory +"/.runtime"):
 		tc = open(directory +"/.runtime",'r');
 		stamp = tc.read()
 		tc.close()
-		if stamp and time.time() - int(stamp) < 120 and not command=='restart':
+		if stamp and time.time() - int(stamp) < 120:
 			exit()
 	# otherwise we can go, if we made it here, then the logic is good.
 
@@ -98,10 +88,6 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 		    tn.read_until("Password: ")
 		    tn.write(password + "\n")
 	
-	# open the 'control' file to allow simple way to turn the file off
-	tc = open(directory + "/.tel_control",'w') # should safely create the file
-	tc.write('go')
-	tc.close()
 	go = True
 	print "I'm Listening."
 	#current = tn.read_all()
