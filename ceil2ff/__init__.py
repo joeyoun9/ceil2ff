@@ -50,7 +50,7 @@ def compressDir(directory='.',out='./ceil.dat',saveas='ascii'):
 	stime = time.time() # for efficiency monitoring purposes.
 
 	files = [directory + F for F in os.listdir(directory)] # not currently recursive...
-	save(files,out)
+	save(files,out,saveas)
 
 def save(files,out_fname,saveas):
 
