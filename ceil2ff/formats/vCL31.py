@@ -22,7 +22,7 @@ def read(ob,**kwargs):
 
 	# then just grab the extra lines - since this compress tries to save everything
 	# FIXME cloud data does not currently get processed!!!
-	cld = 'CL31'+ob['code'].strip()+data[1].strip()+data[2].strip()
+	cld = 'CL31'+ob['code'].strip()+data[1].strip()+data[2].strip() +"|"
 
 	# determine height difference by reading the last digit of the code
 	height_codes = [0,10,20,5,5] #'0' is not a valid key, and will not happen
@@ -37,7 +37,7 @@ def read(ob,**kwargs):
 		ven = prof[i:i+5]
 		if ven[0:2] == "ff" or ven == '00000':
 			# logic: ff corresponds to >=ff000, which is ~1e6, which is beyond super high
-			values[ky] = 1e-8
+			values[ky] = 1/SCALING_FACTOR
 		else:
 			values[ky] = int(ven,16) / SCALING_FACTOR # scaled to 100000sr/km (x1e9 sr/m)FYI
 		ky += 1 # keep the key up to date

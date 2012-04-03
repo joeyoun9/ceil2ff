@@ -1,7 +1,7 @@
 """
 	Read CT25 Ceilometer backscatter obs
 """
-
+from numpy import zeros,float32
 def read(ob,scaled=True,max_ht=3500,extra=False,write=False,**kwargs):
 	"""
 		Read CT25 Observations
@@ -14,14 +14,17 @@ def read(ob,scaled=True,max_ht=3500,extra=False,write=False,**kwargs):
 	data = ob['rest'].split("\n")
 	if extra == 'compress':
 		# then just grab the extra lines - since this compress tries to save everything
-		cld = 'CT25'+ob['code'].strip()+data[1].strip()+data[2].strip()
+		cld = ob['code'].strip()+data[1].strip()+data[2].strip()
 		if ob['code'].strip()[-2] == '7':
 			cld += data[19]
+	text = ""
+	for i in cld:
+		text += str(i)+"|"
 	# the code line does not indicate anything, except message number [-2]
 	# that changes what the very lasst line is, nothing more (7 has a last line [s/c])
-	prof = data[3:18]
-	hts = []
-	values = []
+	prof = data[3:18]#.strip().replace("\n",'').replace("\r","")
+	index = 0
+	values = zeros(250,dtype=float32)
 	for l in prof:
 		# the line is HHHD0D1D2D3D4...
 		l=l.strip()
@@ -29,20 +32,12 @@ def read(ob,scaled=True,max_ht=3500,extra=False,write=False,**kwargs):
 		for i in xrange(3,len(l),4):
 			val = l[i:i+4]
 			if val[0] == 'F' or val == '0000':
-				values.append(1e-7)
+				values[index]= 1
 			else:
-				values.append(int(val,16)/SCALING_FACTOR)
+				values[index] = int(val,16)
+			index +=1
 		""""""
-	out = {'t':ob['time'],'h':30,'v':values,'c':cld} # yes, 30 m resolution! how terrible!
-	if write:
-		# then write the data, and do not return
-		# the line should be formatted tm|hts,|vals,|cld\n
-		strh = ""
-		strv = ""
-		for i in range(len(hts)):
-			strh += str(hts[i])+","
-			strv += str(values[i])+","
-		write.write(str(ob['time'])+'|'+strh+"|"+strv+"|"+cld+'\n')
-		return False # This will trigger no response, even though the job was done
+	values = values#/SCALING_FACTOR # remove the scaling factor...
+	out = {'t':ob['time'],'h':30,'v':values,'c':text,'l':250} # yes, 30 m resolution! how terrible!
 	return out
 
