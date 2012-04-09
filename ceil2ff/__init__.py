@@ -21,7 +21,7 @@ r = False
 t0 = False
 op = 0 # hold  the operation type
 
-def compressFile(input_file,out='./ceil.dat',saveas='ascii'):
+def compressFile(input_file,out='./ceil.dat',saveas='ascii',dtype=False):
 	"""
 	Compress only a specific file.
 	
@@ -32,9 +32,9 @@ def compressFile(input_file,out='./ceil.dat',saveas='ascii'):
 
 	"""	
 	files = [input_file]
-	save(files,out,saveas)
+	save(files,out,saveas,dtype)
 
-def compressDir(directory='.',out='./ceil.dat',saveas='ascii'):
+def compressDir(directory='.',out='./ceil.dat',saveas='ascii',dtype=False):
 	"""
 		Read in Ceilometer data from raw data files
 	Inputs:
@@ -50,9 +50,9 @@ def compressDir(directory='.',out='./ceil.dat',saveas='ascii'):
 	stime = time.time() # for efficiency monitoring purposes.
 
 	files = [directory + F for F in os.listdir(directory)] # not currently recursive...
-	save(files,out,saveas)
+	save(files,out,saveas,dtype)
 
-def save(files,out_fname,saveas):
+def save(files,out_fname,saveas,dtype):
 
 	global time_index,save_index,t,s,d,verbose,f,t0,op,r
 
@@ -74,7 +74,10 @@ def save(files,out_fname,saveas):
 		f = open(out_fname,'w') # open the file, and since it is global, it shall
 		# be written to!
 		print "Writing ASCII file"
-
+	elif saveas == 'npz':
+		op=3
+	elif saveas == 'mat':
+		op=4
 	elif saveas == 'pickle':
 		# pickling is a stupid option, I must assure you.
 		import cPickle
@@ -146,11 +149,15 @@ def save(files,out_fname,saveas):
 		print "Pickling"
 		cPickle.dump(pv,f) 
 		del pv
+	if op == 3:
+		print "Writing NPZ"
+		np.savez(out_fname,backscatter=d,time=t,ranges=r) # FIXME status info is not written!!
 
 	del d,t,s
 
 	# then regardless of format, we must close f
-	f.close()
+	if f:
+		f.close()
 	return True
 
 
@@ -186,14 +193,17 @@ def getObs(fd):
 	# determine what is the true eom character
 	if eom31 in fl:
 		# this is a CL31 message
+		dtype='cl31'
 		split  = eom31
 		code_split = bom25
 	elif bom25 in fl:
 		# this is a CT25 message
+		dtype='ct25'
 		split = eorm
 		code_split = bom25
 	else:
 		# presumably this is a CT12 message...
+		dtype='ct12'
 		split = eorm
 		code_split = False
 
@@ -212,8 +222,13 @@ def getObs(fd):
 		tsb = False
 
 	# this works semi-robustly for Vaisala ceilometers /// always room for improvement
-	
-	if not type(t) == bool:
+	if dtype=='cl31':
+		obL = 1000
+	elif dtype=='ct25':
+		obL = 1000 # FIXME - this is known
+	elif dtype=='ct12':
+		obL = 250
+	if not type(t) == bool: #ie, before any time has been assigned, pre-assign and whatnot
 		if op == 1:
 			# if netCDF
 			f.variables['time'][:] = append(f.variables['time'][:],zeros(len(fobs),dtype=int64))
@@ -221,8 +236,9 @@ def getObs(fd):
 				dtype='S1'),axis=0)
 			f.variables['b/s'][:] = append(f.variables['data'][:],zeros((len(fobs),1000),\
 				dtype=float32),axis=0)
-		elif op == 2:
-			d = append(d,zeros((len(fobs),1000),dtype=float32))
+		elif op > 1:
+			# pickle,npz,mat
+			d = append(d,zeros((len(fobs),obL),dtype=float32))
 			t = append(t,zeros(len(fobs),dtype=int64))
 	
 		# if either
@@ -234,10 +250,10 @@ def getObs(fd):
 			f.variables['time'][:] = zeros(len(fobs),dtype=int64)
 			f.variables['b/s'][:] = zeros((len(fobs),1000),dtype=float32)
 			f.variables['status'][:] = zeros(len(fobs),dtype='S1') # could be bad...
-		elif op == 2:
-			#if pickle
+		elif op > 1:
+			#if pickle, npz, or mat
 			t = zeros(len(fobs),dtype=int64)
-			d = zeros((len(fobs),1000),dtype=float32)
+			d = zeros((len(fobs),obL),dtype=float32)
 		# if either
 		s = range(len(fobs)) # use a regular list for status strings...
 
@@ -307,17 +323,17 @@ def getObs(fd):
 			f.variables['time'][save_index]=tm
 			f.variables['status'][save_index]=out['c']
 
-		elif op == 2:
+		elif op > 1:
 			t[save_index] = tm
 			s[save_index] = out['c']
-			d[save_index] = out['v']
+			d[save_index] = out['v'][:obL] # it will spit out 1000 values regardless...
 
 		if not rn and not op == 0:
 			rn = True
 			if op == 1:
 				f.variables['range'][:] = array([x*out['h'] for x in range(1000)],dtype=int)
 			else:
-				r = array([x*out['h'] for x in range(1000)],dtype=int)
+				r = array([x*out['h'] for x in range(obL)],dtype=int)
 
 
 		if op == 0:
@@ -330,8 +346,8 @@ def getObs(fd):
 		save_index += 1
 
 	
-	# catch up with the last set of indices if pickle...
-	if op == 2:
+	# catch up with the last set of indices if pickle/npz/mat...
+	if op >= 2:
 		t = t[:save_index]
 		d = d[:save_index]
 		s = s[:save_index]
