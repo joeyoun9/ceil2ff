@@ -3,3 +3,6 @@ test/
 *.swp
 *.pyc
 *.DS*
+.project
+
+.pydevproject
