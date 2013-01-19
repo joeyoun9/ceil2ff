@@ -28,12 +28,12 @@ def read(ob):
 	'''
 	OB_LENGTH = 770 #FIXME - the current return length is limited to 770
 	SCALING_FACTOR = 1.0e9
-	# break the full ob text into it's constituent parts
+	'break the full ob text into it\'s constituent parts'
 	p1 = ob.split(unichr(002))
 	p2 = p1[1].split(unichr(003))
 	code = p1[0].strip()
 	ob = p2[0].strip() # just contents between B and C
-	checksum = p2[1].strip()
+	#unused currently checksum = p2[1].strip()
 
 	data = ob.split("\n") # split into lines
 

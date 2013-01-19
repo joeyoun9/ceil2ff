@@ -3,6 +3,8 @@
 	a file that has been created. It is intended to be quick, but we shall see
 
 	REQUIRES MATPLOTLIB
+	
+	DEPRECATED - DO NOT USE, NOT EFFICIENT, NOT HAPPY
 """
 
 import matplotlib.pyplot as plt
@@ -56,7 +58,7 @@ def peek(fn,vmin=1,vmax=2,length=False):
 				return False
 	# and now plot
 	print "Loaded it.. now trying to plot it."
-	fig = plt.figure(figsize=(12,8))
+	plt.figure(figsize=(12,8))
 	
 	plt.imshow(vi[:].T,origin='lower',vmax=vmax,vmin=vmin,aspect='auto')
 	plt.colorbar().set_label('Stored Backscatter Value')
@@ -65,7 +67,7 @@ def peek(fn,vmin=1,vmax=2,length=False):
 
 def ShowLow(fd='./ceil.dat'):
 
-	from cleanfig import ttUTC,ttMST,fig_size
+	from cleanfig import ttUTC,ttMST,fig_size,init_axis
 	f = open(fd)
 	vals = []
 	times = []
@@ -101,7 +103,7 @@ def ShowLow(fd='./ceil.dat'):
 
 	#ceil = plt.imshow(flip2d(vals),origin='lower',aspect=len(times)/len(heights))
 	#ceil = plt.pcolormesh(array(times),array(heights),flip2d(vals),levels=[.01*x for x in range(400)])
-	ceil= plt.contourf(times,heights,flip2d(vals),levels=[-.1+.01*x for x in range(50)])
+	ceil= plt.contourf(times,heights,(vals),levels=[-.1+.01*x for x in range(50)])
 	plt.colorbar(ceil).set_label('Attenuated Backscatter $m^{-1}sr^{-1}$')
 	fig_size(fig,15,8)
 	ax.set_ylabel("Range (m)")
