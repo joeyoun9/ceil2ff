@@ -27,6 +27,7 @@ def read(ob):
     cl = dl[0].strip()
     'info line'
     il = dl[1].strip()
+    'that x for x is NECESSARY.'
     data = [cl[0:1], cl[4:9], cl[10:15], cl[16:21], cl[22:27]] + [x for x in cl[28:39]]
     data += [ il[0:1], il[2:3], il[4:8], il[9:12], il[13:16], il[17:20],
              il[21:25], il[26:31], il[32:34], il[35:37], ]
