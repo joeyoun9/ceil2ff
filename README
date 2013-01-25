@@ -1,5 +1,15 @@
 ceil2ff
 
+First, please note that this software is not entirely maintaned, and ANY user should
+undestand that this is not the primary source of code for MOST operations with ceilometer
+data. At this time I, Joe Young, cannot recommend you use this package. 
+
+For similar services, as they become available. Please consult the Muto package.
+
+I apologize that the Muto package is less complete than this one. Muto is designed
+to actually work however.
+
+
 A python package for converting any *known* ceilometer raw data formats into SI
 (m^-1 sr^-1) backscatter coefficient variables in a gridded flat file, 
 with Unix timestamps. These files should be much easier to read by subsequent
