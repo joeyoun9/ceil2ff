@@ -4,5 +4,4 @@ test/
 *.pyc
 *.DS*
 .project
-
 .pydevproject
