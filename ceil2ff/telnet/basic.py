@@ -12,11 +12,11 @@
 	this code CAN be run INDEPENDENTLY by specifying the
 	input directly below this message
 """
-# inputs for direct running of the telnet library 
+# inputs for direct running of the telnet library
 
-import telnetlib,os
+import telnetlib, os
 
-import sys,time,getpass
+import sys, time, getpass
 
 # THESE ARE DEFAULT VALUES - CHANGE THEM TO YOUR SPECIFIC SETUP IF YOU
 # ARE JUST RUNNING THIS CODE ON A CRON
@@ -29,7 +29,7 @@ PW = False
 
 
 
-def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
+def listen(host, port=23, directory='.', fname='ceil_raw.dat', pw=False):
 	"""
 		Open a persistent telnet connection listening for EOM/BOM messages.
 		TUNED for Vaisala ceilometers, with standard EOM/BOM messages
@@ -59,15 +59,15 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 
 	"""
 	# now check if the last ob was less than 2 minutes
-	if os.path.exists(directory +"/.runtime"):
-		tc = open(directory +"/.runtime",'r');
+	if os.path.exists(directory + "/.runtime"):
+		tc = open(directory + "/.runtime", 'r');
 		stamp = tc.read()
 		tc.close()
 		if stamp and time.time() - int(stamp) < 120:
 			exit()
 	# otherwise we can go, if we made it here, then the logic is good.
 
-	print "connecting to ",host,"\non port",port
+	print "connecting to ", host, "\non port", port
 
 	HOST = host
 	if directory[-1] == "/":
@@ -75,48 +75,48 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 
 
 	# open the telnet connection to the host on the port
-	tn = telnetlib.Telnet(HOST,port)
+	tn = telnetlib.Telnet(HOST, port)
 	if pw:
 		# if a password is required, then use the standard input method
 		user = raw_input("Enter your remote account: ")
 		password = getpass.getpass()
-	
-	
+
+
 		tn.read_until("login: ")
 		tn.write(user + "\n")
 		if password:
 		    tn.read_until("Password: ")
 		    tn.write(password + "\n")
-	
+
 	go = True
 	print "I'm Listening."
-	#current = tn.read_all()
-	#print current
-	EOM  = unichr(3)
+	# current = tn.read_all()
+	# print current
+	EOM = unichr(3)
 	BOM = unichr(2)
 	while go:
 		# read until the end of the message
-		tn.read_until(BOM)# now it is the start of the message!
+		tn.read_until(BOM)  # now it is the start of the message!
 		# now we have filtered off all the pre message schlock.
-		ob = BOM+tn.read_until(EOM)
+		ob = BOM + tn.read_until(EOM)
 		# add a timestamp, and pass the file to the raw data file
-		
-		print ob[0:100]+"..." # this is for giggles right now, hopefully it is good
+
+		print ob[0:100] + "..."  # this is for giggles right now, hopefully it is good
 
 		# oh, we will need to check this ob, to see if it is useful...
 
-		ts = time.time() # epoch format
-		raw = open(fname",'a')
-		raw.write("\n"+str(ts)+"\n"+ob.strip()) # time before ob! (plus some newlines)
+		ts = time.time()  # epoch format
+		raw = open(fname, 'a')
+		raw.write("\n" + str(ts) + "\n" + ob.strip())  # time before ob! (plus some newlines)
 		raw.close()
 
 
-	tn.write("exit\n") # attempt to close properly
+	tn.write("exit\n")  # attempt to close properly
 
 if __name__ == "__main__":
 
 	# the code is being run independently, so call the listener
-	listen(HOST,PORT,DIRECTORY,FNAME,PW)
-	
-	
-	
+	listen(HOST, PORT, DIRECTORY, FNAME, PW)
+
+
+
