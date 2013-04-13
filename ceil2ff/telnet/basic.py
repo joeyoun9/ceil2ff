@@ -95,13 +95,6 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 	EOM  = unichr(3)
 	BOM = unichr(2)
 	while go:
-		# READ THE CONTROLLER FILE
-		tc = open(directory +"/.tel_control",'r');
-		command = tc.read()
-		tc.close()
-		if command == "wait":
-			go = False
-			# at the next go-around, it will quit (~35 seconds)
 		# read until the end of the message
 		tn.read_until(BOM)# now it is the start of the message!
 		# now we have filtered off all the pre message schlock.
@@ -113,14 +106,10 @@ def listen(host,port=23,directory='.',fname='ceil_raw.dat',pw=False):
 		# oh, we will need to check this ob, to see if it is useful...
 
 		ts = time.time() # epoch format
-		raw = open(directory+"/raw_data.dat",'a')
+		raw = open(fname",'a')
 		raw.write("\n"+str(ts)+"\n"+ob.strip()) # time before ob! (plus some newlines)
 		raw.close()
 
-		# update the runtime file!
-		rt = open(directory+"/.runtime",'w')
-		rt.write(str(ts))
-		rt.close()
 
 	tn.write("exit\n") # attempt to close properly
 
